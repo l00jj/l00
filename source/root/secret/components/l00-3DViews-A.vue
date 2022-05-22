@@ -302,6 +302,7 @@ onMounted(() => {
 
 <template>
   <div class="gui-wrap" ref="guiWrap">
+    <div class="background"></div>
     <canvas class="" ref="canvas"></canvas>
   </div>
 </template>
@@ -310,5 +311,16 @@ onMounted(() => {
 .gui-wrap {
   position: relative;
   width: max-content;
+}
+.background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f4f4f4 url("../assets/png/bg.png");
+}
+canvas {
+  position: relative;
 }
 </style>

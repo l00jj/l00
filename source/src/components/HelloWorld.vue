@@ -9,7 +9,7 @@ const count = ref(0)
 <template>
   <h1>{{ msg }}</h1>
   <div style="background: #000;">
-    <img src="@assets/logo.svg">
+    <img src="/assets/logo/logo.svg">
   </div>
 
   <p>

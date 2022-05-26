@@ -3,13 +3,17 @@
   "private": true,
   "version": "0.0.0",
   "scripts": {
+    "dev:l00": "vite --base /l00/",
+    "build:l00_docs": "vue-tsc --noEmit && vite build --mode l00",
+    "build:UiExample_docs": "vue-tsc --noEmit && vite build --mode l00 --base /UiExample/",
+    "build:l00_dist": "vue-tsc --noEmit && vite build --mode l00 --outDir \"$(pwd)/dist\"",
+    "preview:docs": "vite preview --base /l00/",
+    "clearDirs": "rm -r ./dist/"
+  },
+  "scripts_source": {
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
-    "build:l00": "vue-tsc --noEmit && vite build --mode l00",
-    "build:l00_dist": "vue-tsc --noEmit && vite build --mode l00_dist",
-    "build:UiExample": "vue-tsc --noEmit && vite build --mode UiExample",
-    "preview": "vite preview",
-    "clearDirs": "rm -r ../docs/"
+    "preview": "vite preview"
   },
   "dependencies": {
     "dat.gui": "^0.7.9",

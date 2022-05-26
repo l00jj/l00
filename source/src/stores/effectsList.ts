@@ -23,12 +23,12 @@ class EffectInfo extends EffectJson {
   }
 };
 
-const jsons = import.meta.globEager('@components/effects/*/index.json')
-const vues = import.meta.glob('@components/effects/*/*.vue')
+const jsons = import.meta.globEager('@src/effects-components/*/index.json')
+const vues = import.meta.glob('@src/effects-components/*/*.vue')
 const effectsList = Object.entries(jsons).map(([key, item]) => {
   const { id } = item.default
-  const coverUrl = new URL(`../components/effects/${id}/index.jpg`, import.meta.url).href
-  const vue = vues[`../components/effects/${id}/${id}.vue`]
+  const coverUrl = new URL(`../effects-components/${id}/index.jpg`, import.meta.url).href
+  const vue = vues[`../effects-components/${id}/${id}.vue`]
   item.default.date = parseInt(item.default.date)
   return new EffectInfo(item.default as EffectJson, coverUrl, vue)
 })

@@ -4,9 +4,8 @@ import { ref, reactive, computed, watchEffect, defineAsyncComponent, onBeforeMou
 import l00list from "./looList";
 
 const onWheel = (e: UIEvent) => {
-  console.log(e);
   const elBg = bg.value;
-  console.log(elBg.offsetTop, elBg.scrollHeight);
+  //console.log(elBg.offsetTop, elBg.scrollHeight);
 };
 
 /* //视频方案延时较大
@@ -73,7 +72,7 @@ let ctxBg: CanvasRenderingContext2D;
 
 onMounted(() => {
   ctx = (canvas.value as HTMLCanvasElement).getContext("2d") as CanvasRenderingContext2D;
-  ctxBg = (canvasBg.value as HTMLCanvasElement).getContext("2d") as CanvasRenderingContext2D;
+  //ctxBg = (canvasBg.value as HTMLCanvasElement).getContext("2d") as CanvasRenderingContext2D;
   if (jpglist.length) onScroll();
 });
 

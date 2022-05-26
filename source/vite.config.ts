@@ -10,14 +10,13 @@ const commonConfig: UserConfigExport = {
     host: '0.0.0.0',//用于内网查看
   },
 
-  base: '/',
   root: resolve(__dirname, './root'),
+  base: '/',
+  publicDir: resolve(__dirname, './public'),
 
   resolve: {
     alias: {
-      '@assets': resolve(__dirname, './src/assets'),
-      '@components': resolve(__dirname, './src/components'),
-      '@stores': resolve(__dirname, './src/stores'),
+      '@src': resolve(__dirname, './src'),
     },
   },
 
@@ -31,7 +30,7 @@ const commonConfig: UserConfigExport = {
         'about': resolve(__dirname, 'root/about/index.html'),
         'effects': resolve(__dirname, 'root/effects/index.html'),
         'blobs': resolve(__dirname, 'root/blobs/index.html'),
-        'secret': resolve(__dirname, 'root/secret/index.html'),
+        'metaverse': resolve(__dirname, 'root/metaverse/index.html'),
       },
 
       output: {//输出资源整合到对应文件夹
@@ -52,20 +51,6 @@ export default defineConfig(({ command, mode }) => {
     commonConfig.build.outDir = resolve(__dirname, '../docs')
     commonConfig.build.manifest = false
     commonConfig.base = '/l00/'
-    commonConfig.build.emptyOutDir = true
-  }
-
-  //导出的用于本地预览
-  if (command === 'build' && mode === 'l00_dist') {
-    commonConfig.build.manifest = false
-    commonConfig.base = '/l00/'
-  }
-
-  //导出的是github的page页面用
-  if (command === 'build' && mode === 'UiExample') {
-    commonConfig.build.outDir = resolve(__dirname, '../docs')
-    commonConfig.build.manifest = false
-    commonConfig.base = '/UiExample/'
     commonConfig.build.emptyOutDir = true
   }
 

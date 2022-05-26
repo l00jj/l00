@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { reactive } from "vue";
-import sitePages from "@stores/sitePages";
+import sitePages from "@src/stores/sitePages";
 
 const option = reactive({
   size: 80,
@@ -14,7 +14,7 @@ const host = import.meta.env.MODE === "UiExample" ? "/UiExample" : "";
 <template>
   <nav id="top-menu" class="">
     <div id="logo">
-      <a :href="`${host}/`"><img src="@assets/logo.svg" alt="l00" /></a>
+      <a :href="`${host}/`"><img src="/assets/logo/logo.svg" alt="l00" /></a>
     </div>
     <div id="actions">
       <div class="goto" v-for="page in sitePages">

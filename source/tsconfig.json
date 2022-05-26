@@ -18,8 +18,9 @@
     //user
     "baseUrl": "./",
     "paths": {
-      "@components/*": ["src/components/*"],
-      "@stores/*": ["src/stores/*"],
+      "@src/*": [
+        "src/*"
+      ]
     }
   },
   "include": [

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, defineAsyncComponent, onBeforeMount, onUnmounted } from "vue";
-import TopMenu from "@components/TopMenu.vue";
-import effectsList from "@stores/effectsList";
+import TopMenu from "@src/components/TopMenu.vue";
+import effectsList from "@src/stores/effectsList";
 import RightMenu from "./RightMenu.vue";
 
 /**

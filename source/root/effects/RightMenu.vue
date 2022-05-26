@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, defineAsyncComponent, onBeforeMount, onUnmounted } from "vue";
-import effectsList from "@stores/effectsList";
+import effectsList from "@src/stores/effectsList";
 
 //const props = defineProps<{}>();
 

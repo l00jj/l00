@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, defineAsyncComponent, onBeforeMount, onUnmounted } from "vue";
-import TopMenu from "@components/TopMenu.vue";
+import TopMenu from "@src/components/TopMenu.vue";
 import SvgBlobPreview from "./SvgBlobPreview.vue";
 import CSSBlobPreview from "./CSSBlobPreview.vue";
 </script>

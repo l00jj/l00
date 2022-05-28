@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, defineAsyncComponent, onBeforeMount, onUnmounted } from "vue";
+import { ref, computed, provide, defineAsyncComponent, onBeforeMount, onUnmounted } from "vue";
 import TopMenu from "@src/components/TopMenu.vue";
-import effectsList from "@src/stores/effectsList";
+import list from "@src/stores/effectsList";
 import RightMenu from "./RightMenu.vue";
+import Alert404 from "@src/components/Alert404";
 
 /**
  * 选择显示模板
@@ -11,19 +12,19 @@ const currentPath = ref(window.location.hash);
 const onHashchange = () => (currentPath.value = window.location.hash);
 onBeforeMount(() => window.addEventListener("hashchange", onHashchange));
 onUnmounted(() => window.removeEventListener("hashchange", onHashchange));
-const currentView = computed(() => {
+const page = computed(() => {
   const path = currentPath.value.slice(1);
-  let effect = effectsList.find((i) => i.id === path);
-  if (!effect) {
-    effect = effectsList[0];
-    location.hash = `#${effect.id}`;
+  let page = list.find((i) => i!.id === path);
+  if (!page) {
+    page = list[0];
+    if (path !== "") Alert404();
   }
-  return defineAsyncComponent(effect.vue);
+  return page;
 });
 
-/**
- * 监听宽度变化视情况加入侧栏与底栏
- */
+const currentView = computed(() => {
+  return defineAsyncComponent(page?.value?.vue);
+});
 </script>
 
 <template>
@@ -33,8 +34,6 @@ const currentView = computed(() => {
   </div>
   <RightMenu></RightMenu>
   <div class="more"></div>
-  <!-- 
-  <Preview /> -->
 </template>
 
 <style>

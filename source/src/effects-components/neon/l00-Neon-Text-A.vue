@@ -56,7 +56,7 @@ const list = computed(() => {
 <style scoped>
 @font-face {
   font-family: "custom_font";
-  src: url("/assets/fonts/Bad_Script/BadScript-Regular.ttf");
+  src: url("@src/assets/fonts/Bad_Script/BadScript-Regular.ttf");
   /* src: url("@src/assets/fonts/Courgette/Courgette-Regular.ttf"); */
   /* src: url("@src/assets/fonts/Yellowtail/Yellowtail-Regular.ttf"); */
   /* src: url("@src/assets/fonts/Gloria_Hallelujah/GloriaHallelujah-Regular.ttf"); */

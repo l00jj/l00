@@ -1,37 +1,30 @@
-class EffectJson {
+class Page {
   "id": string
-  "date": number
   "title": string
-  "tags": [string]
-  //"urls": [string]//暂不使用
-  constructor(input: EffectJson) {
-    this.id = input.id
-    this.date = input.date
-    this.title = input.title
-    this.tags = input.tags
-    //this.urls = input.urls
-  }
-}
-
-class EffectInfo extends EffectJson {
+  "date": string
+  "time": number
   "coverUrl": string
   "vue": any
-  constructor(input: EffectJson, coverUrl: string, vue: any) {
-    super(input)
-    this.coverUrl = coverUrl
-    this.vue = vue
+  constructor(path: string, pageInfo: any) {
+    const node = path.split('/')
+    const id = node[node.length - 2]
+    this.id = id
+    this.title = pageInfo.title
+    this.date = pageInfo.date
+    this.time = (new Date(pageInfo.date)).valueOf()
+    this.coverUrl = pageInfo.coverUrl
+    this.vue = pageInfo.vue
   }
-};
-
-const jsons = import.meta.globEager('@src/effects-components/*/index.json')
-const vues = import.meta.glob('@src/effects-components/*/*.vue')
-const effectsList = Object.entries(jsons).map(([key, item]) => {
-  const { id } = item.default
-  const coverUrl = new URL(`../effects-components/${id}/index.jpg`, import.meta.url).href
-  const vue = vues[`../effects-components/${id}/${id}.vue`]
-  item.default.date = parseInt(item.default.date)
-  return new EffectInfo(item.default as EffectJson, coverUrl, vue)
-})
-effectsList.sort((a, b) => b.date - a.date);
-
-export default effectsList
+}
+//
+const paths = import.meta.globEager('@src/effects-components/*/index.ts')
+const indexID = 'index'
+const list: Page[] = [];
+let indexPage: Page | null = null;
+for (let [key, item] of Object.entries(paths)) {
+  const page = new Page(key, item.default)
+  if (!indexPage && page.id === indexID) indexPage = page
+  else list.push(page)
+}
+list.sort((a, b) => b.time - a.time);
+export default [indexPage, ...list]

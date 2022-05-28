@@ -7,8 +7,6 @@ import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import gsap from "gsap";
 import * as dat from "dat.gui";
 //
-import PublicPath from "@src/unit/PublicPath";
-
 const props = defineProps<{
   width: number;
   height: number;
@@ -143,11 +141,14 @@ class View {
      * 加入字体
      */
     const fontLoader = new FontLoader();
-    const fontUrl_helvetiker_regular = new PublicPath('/assets/fonts/helvetiker/helvetiker_regular.typeface.json').url
-    fontLoader.load(fontUrl_helvetiker_regular, (font) => {
-      this.mainFont = font;
-      this.addTextToScene();
+    import("@src/assets/fonts/helvetiker/helvetiker_regular.typeface.json?url").then((promise) => {
+      const fontUrl_helvetiker_regular = promise.default;
+      fontLoader.load(fontUrl_helvetiker_regular, (font) => {
+        this.mainFont = font;
+        this.addTextToScene();
+      });
     });
+
     this.mainScene.add(this.sceneObjects.fontGroup);
 
     /**

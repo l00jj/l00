@@ -1,10 +1,5 @@
 <script setup lang="ts">
 import { reactive, ref, computed, watchEffect, onMounted, onUnmounted } from "vue";
-
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-import decoderPath from "@src/assets/draco/?url";
-
 import L00View from "./L00View";
 
 /**

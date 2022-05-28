@@ -9,14 +9,17 @@ import { fromPairs } from "lodash";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
-import decoderPath from "@src/assets/draco/?url";
 
+import PublicPath from "@src/unit/PublicPath"
 
 import logoModelUrl from './assets/models/one.glb?url';
 import pbrMaterialUrl from '@src/assets/materials/freepbr-pitted-pbr-1/polished_concrete_basecolor.jpg?url';
 
 import { Reflector, ReflectorMaterial, floorPowerOfTwo } from "@src/modules/alien/alien.js";
+import { th } from "element-plus/lib/locale";
 
+import vertexShader from './vertexShader.glsl?raw';
+import fragmentShader from './fragmentShader.glsl?raw';
 
 
 
@@ -221,163 +224,36 @@ class WorldController {
      * 摄像机初始化并加入场景
      */
     this.cameraController.init()
-    //this.cameraController.setOrbitControl(this.view.canvasEl)
+    this.cameraController.setOrbitControl(this.view.canvasEl)
     this.sceneController.scene.add(this.cameraController.camera);
-    //
-    this.cameraController.camera.position.x = 0;
-    this.cameraController.camera.position.y = 1.7;
-    this.cameraController.camera.position.z = 20;
-    this.cameraController.camera.lookAt(0, 1.7, -200);
+    this.cameraController.camera.position.add(new THREE.Vector3(1, 2, 3))
+    this.cameraController.camera.lookAt(0, 0, 0)
 
     /**
      * 设置渲染器
      */
     this.renderManager.init()
 
-    /**
-     * 灯光
-     */
-    this.testLight = new THREE.PointLight(0xffffff, 50, 1000);
-    this.sceneController.scene.add(this.testLight);
-    this.testLight.position.set(0, 20, 100);
 
+    // Geometry
+    const geometry = new THREE.PlaneBufferGeometry(1, 1, 32, 32)
 
-
-
-    /*
-       const greenLight = new THREE.PointLight(0x00ff00, 0.25, 1000);
-       greenLight.position.set(550, 50, 0);
-       this.mainScene.add(greenLight);
-   
-       const redLight = new THREE.PointLight(0xff0000, 0.25, 1000);
-       redLight.position.set(-550, 50, 0);
-       this.mainScene.add(redLight);
-   
-       const blueLight = new THREE.PointLight(0x7f7fff, 0.25, 1000);
-       blueLight.position.set(0, 50, 550);
-       this.mainScene.add(blueLight); */
-
-
-
-
-
-    /* 
-        const geometry = new THREE.IcosahedronGeometry(5, 0);
-        const material = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0x333333, flatShading: true });
-        const smallSphere = new THREE.Mesh(geometry, material);
-        smallSphere.position.set(0, 5, -20);
-        this.sceneController.scene.add(smallSphere);
-     */
-
-    /**
-     * 加载模型
-     */
-    /* const logoMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0xffffff,
-      emissive: 0xffffff
-    }); */
-    //0x40ADFF
-
-    const logoMaterial = new THREE.MeshPhongMaterial({ color: 0x000000, emissive: 0x111111, flatShading: true });
-    const logoModel = await View.gltfLoader.loadAsync(logoModelUrl);
-    this.sceneController.scene.add(logoModel.scene);
-    logoModel.scene.traverse(item => {
-      const mesh = item as THREE.Mesh
-      if (mesh.isMesh) {
-        mesh.material = logoMaterial
-      }
+    // rawShaderMaterial
+    const meshBasicMaterial = new THREE.MeshBasicMaterial()
+    const rawShaderMaterial = new THREE.RawShaderMaterial({
+      vertexShader: vertexShader,
+      fragmentShader: fragmentShader,
+      wireframe:true
     })
 
-
-
-    /**
-     * 三角形隧道
-     */
-    let triangle: Triangle;
-    Array(10).fill([-200, 20]).map((v, i) => {
-      const positionZ = v[0] + v[1] * i
-      triangle = new Triangle();
-      triangle.initMesh();
-      triangle.position.z = positionZ
-      this.sceneController.scene.add(triangle);
-    })
-
-
-
-
-    const scene = this.sceneController.scene
-
-    class Floor extends THREE.Group {
-      reflector = new Reflector()
-
-      constructor() {
-        super();
-
-        this.initReflector();
-      }
-
-      initReflector() {
-        this.reflector = new Reflector();
-      }
-
-      async initMesh() {
-        const geometry = new THREE.PlaneGeometry(100, 500);
-        const textureLoader = new THREE.TextureLoader();
-
-        const map = await textureLoader.loadAsync(pbrMaterialUrl);
-        map.wrapS = THREE.RepeatWrapping;
-        map.wrapT = THREE.RepeatWrapping;
-        map.repeat.set(16, 16);
-
-        const { fog } = scene;
-
-        const material = new ReflectorMaterial({
-          map,
-          fog,
-          dithering: true,
-        });
-        material.uniforms.tReflect = this.reflector.renderTargetUniform;
-        material.uniforms.uMatrix = this.reflector.textureMatrixUniform;
-
-        const mesh = new THREE.Mesh(geometry, material);
-        //mesh.position.y = -1.6;
-        mesh.position.z = -200;
-        mesh.rotation.x = -Math.PI / 2;
-        mesh.add(this.reflector);
-
-        mesh.onBeforeRender = (renderer, scene, camera) => {
-          this.visible = false;
-          this.reflector.update(renderer, scene, camera);
-          this.visible = true;
-        };
-
-        this.add(mesh);
-      }
-
-      /**
-       * Public methods
-       */
-
-      resize = (width: number, height: number) => {
-        width = floorPowerOfTwo(width) / 2;
-        height = 1024;
-
-        this.reflector.setSize(width, height);
-      };
-    }
-
-
-
-    const floor = new Floor();
-    this.sceneController.scene.add(floor);
-    floor.initMesh();
-
-
+    // Mesh
+    const mesh = new THREE.Mesh(geometry, rawShaderMaterial)
+    this.sceneController.scene.add(mesh);
 
     /**
      * 控制台初始化
      */
-    this.guiController.init()
+    //this.guiController.init()
 
   }
 
@@ -401,7 +277,7 @@ class WorldController {
     //更新世界
     this.cameraController.orbitControl?.update();
     //更新动画
-    this.animationController.update();
+    //this.animationController.update();
     //渲染
     this.renderManager.renderer.render(this.sceneController.scene, this.cameraController.camera);
   }
@@ -409,22 +285,34 @@ class WorldController {
 
 
 class View {
+  static dracoLoader = new DRACOLoader();
+  static gltfLoader = new GLTFLoader();
+  static svgLoader = new SVGLoader();
+
+  static Size = class Size {
+    width = 1920
+    height = 1080
+  }
+
+
   canvasEl: HTMLElement
   viewraperEl: HTMLElement
 
   size = new View.Size()
-  worldController: WorldController
 
-  static dracoLoader = new DRACOLoader();
-  static gltfLoader = new GLTFLoader();
-  static svgLoader = new SVGLoader();
+  worldController: WorldController
 
   constructor(canvasEl: HTMLElement, viewraperEl: HTMLElement) {
     //设置对象
     this.canvasEl = canvasEl
     this.viewraperEl = viewraperEl
 
+    //设置初始值
+    this.size.width = this.viewraperEl.offsetWidth
+    this.size.height = this.viewraperEl.offsetHeight
+
     //设置模型加载器
+    const decoderPath = new PublicPath('/assets/draco/').url
     View.dracoLoader.setDecoderPath(decoderPath);
     View.gltfLoader.setDRACOLoader(View.dracoLoader);
 
@@ -433,11 +321,9 @@ class View {
   }
 
   init() {
-    //设置初始值
-    this.size.width = this.viewraperEl.offsetWidth
-    this.size.height = this.viewraperEl.offsetHeight
     //初始化世界
     this.worldController.init()
+
     //初始化大小
     this.resize()
   }
@@ -470,7 +356,7 @@ class View {
   /**
    * 添加监听
    */
-  addEventListener() {
+  mounted() {
     window.addEventListener('resize', this.resize)
     window.addEventListener('scroll', this.worldController.animationController.onScroll)
   }
@@ -478,16 +364,9 @@ class View {
   /**
    * 移除监听
    */
-  removeEventListener() {
+  unmounted() {
     window.removeEventListener('resize', this.resize)
     window.removeEventListener('scroll', this.worldController.animationController.onScroll)
-  }
-}
-
-namespace View {
-  export class Size {
-    width = 1920
-    height = 1080
   }
 }
 

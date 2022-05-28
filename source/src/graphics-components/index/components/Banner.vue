@@ -6,7 +6,6 @@ import { FontLoader, Font as FontLoaderFont } from "three/examples/jsm/loaders/F
 import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
 import gsap from "gsap";
 import * as dat from "dat.gui";
-import PublicPath from "@src/unit/PublicPath";
 
 /**
  * 视图元素
@@ -159,8 +158,10 @@ class View {
      * 加入字体
      */
     const fontLoader = new FontLoader();
-    const fontUrl_helvetiker_regular = new PublicPath('/assets/fonts/helvetiker/helvetiker_regular.typeface.json').url
-    this.mainFont = await fontLoader.loadAsync(fontUrl_helvetiker_regular);
+    const fontUrl_helvetiker_regular = await import(
+      "@src/assets/fonts/helvetiker/helvetiker_regular.typeface.json?url"
+    );
+    this.mainFont = await fontLoader.loadAsync(fontUrl_helvetiker_regular.default);
     this.mainScene.add(this.sceneObjects.fontGroup);
 
     /**
@@ -343,7 +344,7 @@ onUnmounted(() => {
 .container {
   position: relative;
   width: 100%;
-  height: 80vh;
+  height: 100%;
 }
 
 .gui-wrap {
@@ -356,7 +357,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #f4f4f4 url("../assets/png/bg.png");
+  background: #f4f4f4 url("@src/assets/logo/logo-backgroundMap-lightGray.png");
 }
 canvas {
   position: relative;

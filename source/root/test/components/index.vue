@@ -20,7 +20,7 @@ const viewraper = ref();
 let view: L00View;
 
 onUnmounted(() => {
-  view?.removeEventListener();
+  view?.unmounted();
 });
 
 onMounted(() => {
@@ -28,7 +28,7 @@ onMounted(() => {
   const viewraperEl: HTMLElement = viewraper.value as HTMLElement;
   view = new L00View(canvasEl, viewraperEl);
   view.init();
-  view.addEventListener();
+  view.mounted();
   view.render();
 });
 </script>
@@ -38,7 +38,7 @@ onMounted(() => {
     <canvas ref="canvas"></canvas>
     <div class="guiwrap" ref="guiwrap"></div>
   </div>
-  <div class="container"></div>
+  
 </template>
 
 <style scoped>

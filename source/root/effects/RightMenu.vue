@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import { ref, computed, defineAsyncComponent, onBeforeMount, onUnmounted } from "vue";
-import effectsList from "@src/stores/effectsList";
-
-//const props = defineProps<{}>();
-
+import pageList from "@src/stores/effectsList";
+const list = computed(() => pageList.slice(1));
 </script>
 
 <template>
   <div class="container">
     <div class="trigger material">:</div>
     <div class="menu material">
-      <div class="menu-item" v-for="item in effectsList" :key="item.id">
-        <a :href="`#${item.id}`">
-          <img :src="item.coverUrl" loading="lazy" />
-          <span>{{ item.title }}</span>
+      <div class="menu-item" v-for="item in list" :key="item?.id">
+        <a :href="`#${item?.id}`">
+          <img :src="item?.coverUrl" loading="lazy" />
+          <span>{{ item?.title }}</span>
         </a>
       </div>
     </div>

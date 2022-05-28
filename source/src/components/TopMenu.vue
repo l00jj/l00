@@ -14,7 +14,7 @@ const host = import.meta.env.MODE === "UiExample" ? "/UiExample" : "";
 <template>
   <nav id="top-menu" class="">
     <div id="logo">
-      <a :href="`${host}/`"><img src="/assets/logo/logo.svg" alt="l00" /></a>
+      <a :href="`${host}/`"><img src="@src/assets/logo/logo.svg" alt="l00" /></a>
     </div>
     <div id="actions">
       <div class="goto" v-for="page in sitePages">

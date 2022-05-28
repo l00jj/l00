@@ -3,6 +3,7 @@ import { ref, reactive, computed, onUnmounted, watchEffect, WatchStopHandle, def
 
 const props = defineProps<{
   color?: string | [string, string];
+  perspective?: [number, number];
 }>();
 
 const option = reactive({
@@ -11,6 +12,8 @@ const option = reactive({
   sideRotate: 0, //[自动计算]每片的旋转角度，单位deg
   sideRadius: 0, //[自动计算]每片的外延半径，单位px
   sideTextOffset: 46, //文字对齐偏移，单位px
+  perspectiveMin: 100, //视距
+  perspectiveMax: 1000, //视距
 
   bgColor: "#222",
 });
@@ -30,6 +33,8 @@ const mainStyle = computed(() => {
     "--side-rotate": `${option.sideRotate}deg`,
     "--side-translateZ": `${option.sideRadius}px`,
     "--side-textOffset": `${option.sideTextOffset}px`,
+    "--perspectiveMin": `${props.perspective && props.perspective[0] ? props.perspective[0] : option.perspectiveMin}px`,
+    "--perspectiveMax": `${props.perspective && props.perspective[1] ? props.perspective[1] : option.perspectiveMax}px`,
   }).reduce((v, i) => `${v}${i[0]}:${i[1]};`, "");
 });
 
@@ -57,8 +62,8 @@ API window.getComputedStyle(document.querySelector('.test'))['font-size']
 </script>
 
 <template>
-  <div class="view">
-    <div class="box" :style="mainStyle">
+  <div class="view" :style="mainStyle">
+    <div class="box">
       <div class="side" v-for="side in sides" :key="side.id" :style="side.style"><slot></slot></div>
     </div>
   </div>
@@ -77,10 +82,10 @@ API window.getComputedStyle(document.querySelector('.test'))['font-size']
 }
 @keyframes animateView {
   0% {
-    transform: perspective(100px);
+    transform: perspective(var(--perspectiveMin));
   }
   100% {
-    transform: perspective(1000px);
+    transform: perspective(var(--perspectiveMax));
   }
 }
 

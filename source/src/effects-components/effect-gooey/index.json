@@ -1,6 +1,0 @@
-{
-  "id": "effect-gooey",
-  "date": "20220407",
-  "title": "图形融合效果",
-  "tags": ["svg", "filter", "feGaussianBlur", "feColorMatrix"]
-}

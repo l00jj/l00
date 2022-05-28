@@ -7,7 +7,7 @@
     "build:l00_docs": "vue-tsc --noEmit && vite build --mode l00",
     "build:UiExample_docs": "vue-tsc --noEmit && vite build --mode l00 --base /UiExample/",
     "build:l00_dist": "vue-tsc --noEmit && vite build --mode l00 --outDir \"$(pwd)/dist\"",
-    "preview:docs": "vite preview --base /l00/",
+    "preview:l00_dist": "vite preview --base /l00/",
     "clearDirs": "rm -r ./dist/"
   },
   "scripts_source": {

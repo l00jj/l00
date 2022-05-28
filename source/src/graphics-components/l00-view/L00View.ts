@@ -226,7 +226,7 @@ class WorldController {
     /**
      * 场景中加入坐标提示器
      */
-    this.sceneController.setAxesHelper()
+    this.sceneController.setAxesHelper(false)
 
     /**
      * 摄像机初始化并加入场景
@@ -334,8 +334,7 @@ class WorldController {
       async initMesh() {
         const geometry = new THREE.PlaneGeometry(100, 500);
         const textureLoader = new THREE.TextureLoader();
-
-        const pbrMaterialUrl = new PublicPath('/assets/materials/freepbr-pitted-pbr-1/polished_concrete_basecolor.jpg').url
+        const pbrMaterialUrl = (await import('@src/assets/materials/freepbr-pitted-pbr-1/polished_concrete_basecolor.jpg?url')).default
         const map = await textureLoader.loadAsync(pbrMaterialUrl);
         map.wrapS = THREE.RepeatWrapping;
         map.wrapT = THREE.RepeatWrapping;

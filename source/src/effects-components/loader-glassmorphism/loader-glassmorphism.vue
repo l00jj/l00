@@ -1,15 +1,33 @@
 <script setup lang="ts">
-import { ref, computed, watchEffect } from "vue";
-import GlassmorphismA from "./l00-Loader-Glassmorphism-A.vue";
+import { onMounted } from "vue";
+import LoaderGlassmorphismA from "./l00-LoaderGlassmorphism-A.vue";
+import LoaderGlassmorphismB from "./l00-LoaderGlassmorphism-B.vue";
+import LoaderGlassmorphismC from "./l00-LoaderGlassmorphism-C.vue";
 
-const vGlassmorphismA = ref();
-const bgColor = computed(() => vGlassmorphismA?.value?.option?.bgColor);
+/**
+ * 根据载入url判断第一个显示的组件
+ */
+const componentList: any[] = [];
+onMounted(() => {
+  const toTopName = window.location.hash.slice(1);
+  componentList.forEach((componentEl: HTMLElement) => {
+    const componentName = componentEl.dataset.name;
+    if (componentName && componentName === toTopName) componentEl.classList.add("top");
+    else componentEl.classList.remove("top");
+  });
+});
 </script>
 
 <template>
-  <section :style="{ background: bgColor }">
-    <GlassmorphismA ref="vGlassmorphismA" text="Glitch Text"></GlassmorphismA>
-  </section>
+  <div class="container">
+    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-a">
+      <LoaderGlassmorphismA></LoaderGlassmorphismA>
+    </div>
+    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-bc">
+      <LoaderGlassmorphismB></LoaderGlassmorphismB>
+      <LoaderGlassmorphismC></LoaderGlassmorphismC>
+    </div>
+  </div>
 </template>
 
 <style scoped>
@@ -18,14 +36,16 @@ const bgColor = computed(() => vGlassmorphismA?.value?.option?.bgColor);
   padding: 0;
   box-sizing: border-box;
 }
-
-section {
-  position: relative;
-  width: 100%;
-  min-height: 100vh;
+.container {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  flex-direction: column;
+}
+
+.container .container-item {
+  display: flex;
+  height: 80vh;
+}
+.container .container-item.top {
+  order: -1;
 }
 </style>

@@ -5,7 +5,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
 
-import L00View from "./L00View";
+import View from "./l00RagingSea";
 
 /**
  * 视图元素
@@ -17,7 +17,7 @@ const viewraper = ref();
 /**
  * 创建视图控制器
  */
-let view: L00View;
+let view: View;
 
 onUnmounted(() => {
   view?.unmounted();
@@ -26,7 +26,7 @@ onUnmounted(() => {
 onMounted(() => {
   const canvasEl: HTMLElement = canvas.value as HTMLElement;
   const viewraperEl: HTMLElement = viewraper.value as HTMLElement;
-  view = new L00View(canvasEl, viewraperEl);
+  view = new View(canvasEl, viewraperEl);
   view.init();
   view.mounted();
   view.render();

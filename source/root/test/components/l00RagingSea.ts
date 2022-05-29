@@ -20,6 +20,7 @@ import { th } from "element-plus/lib/locale";
 
 import vertexShader from './vertexShader.glsl?raw';
 import fragmentShader from './fragmentShader.glsl?raw';
+import waterDrop from "@src/effects-components/water-drop";
 
 
 
@@ -236,19 +237,22 @@ class WorldController {
 
 
     // Geometry
-    const geometry = new THREE.PlaneBufferGeometry(1, 1, 32, 32)
+    const geometry = new THREE.PlaneBufferGeometry(2, 2, 128, 128)
 
     // rawShaderMaterial
     const meshBasicMaterial = new THREE.MeshBasicMaterial()
     const rawShaderMaterial = new THREE.RawShaderMaterial({
       vertexShader: vertexShader,
       fragmentShader: fragmentShader,
-      wireframe:true
+      wireframe: true
     })
 
     // Mesh
     const mesh = new THREE.Mesh(geometry, rawShaderMaterial)
+    mesh.rotation.x = -Math.PI * 0.5
     this.sceneController.scene.add(mesh);
+
+
 
     /**
      * 控制台初始化

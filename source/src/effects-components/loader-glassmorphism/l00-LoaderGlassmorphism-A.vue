@@ -3,37 +3,40 @@ import { ref, reactive, computed, onUnmounted, watchEffect, WatchStopHandle, def
 
 const props = defineProps<{
   color?: string | [string, string];
-  text: string;
 }>();
 
-const option = reactive({
+const parameter = reactive({
   size: 150,
   scale: 0.4,
   time: 4,
-  bgColor: "#1a191d",
+  backgroundColor: "#1a191d",
 });
-defineExpose({ option });
+defineExpose({ parameter });
 
 const froundFix = (input: number, n: number) => ((n = 10 ** n), Math.round(input * n) / n); //保留小数
 
 const mainStyle = computed(() => {
   return Object.entries({
-    "--size": `${option.size}px`,
-    "--scale": `${option.scale}`,
-    "--blur": `${option.size / 10}px`,
-    "--animationTime": `${option.time}s`,
-    "--translate_1": `translate(${-option.size}px,${froundFix(option.size / 3, 2)}px)`,
-    "--translate_2": `translate(${option.size}px,${-froundFix(option.size / 3, 2)}px)`,
+    "--size": `${parameter.size}px`,
+    "--scale": `${parameter.scale}`,
+    "--blur": `${parameter.size / 10}px`,
+    "--animationTime": `${parameter.time}s`,
+    "--translate_1": `translate(${-parameter.size}px,${froundFix(parameter.size / 3, 2)}px)`,
+    "--translate_2": `translate(${parameter.size}px,${-froundFix(parameter.size / 3, 2)}px)`,
+    //原生 style
+    "background-color": parameter.backgroundColor,
   }).reduce((v, i) => `${v}${i[0]}:${i[1]};`, "");
 });
 </script>
 
 <template>
-  <div class="loader" :style="mainStyle">
-    <span></span>
-    <span></span>
-    <span></span>
-  </div>
+  <section v-bind="$attrs" :style="mainStyle">
+    <div class="loader">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+  </section>
 </template>
 
 <style scoped>
@@ -41,6 +44,16 @@ const mainStyle = computed(() => {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+section {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 .loader {
   position: relative;

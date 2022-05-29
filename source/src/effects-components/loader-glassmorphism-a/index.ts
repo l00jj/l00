@@ -5,5 +5,5 @@ export default {
     "tags": ["css"],
     //"urls": ["https://www.youtube.com/watch?v=HSF_yX73I7w"],
     "date": "2022.05.28 07:00:00",
-    "vue": () => import('./loader-glassmorphism.vue')
+    "vue": () => import('@src/effects-components/loader-glassmorphism/loader-glassmorphism.vue')
 };

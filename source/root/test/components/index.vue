@@ -28,6 +28,7 @@ onMounted(() => {
   const viewraperEl: HTMLElement = viewraper.value as HTMLElement;
   view = new View(canvasEl, viewraperEl);
   view.init();
+  view.addGuiController();
   view.mounted();
   view.render();
 });
@@ -38,7 +39,7 @@ onMounted(() => {
     <canvas ref="canvas"></canvas>
     <div class="guiwrap" ref="guiwrap"></div>
   </div>
-  
+
 </template>
 
 <style scoped>
@@ -47,6 +48,7 @@ onMounted(() => {
   width: 100vw;
   height: 100vh;
 }
+
 .guiwrap {
   position: absolute;
   width: max-content;

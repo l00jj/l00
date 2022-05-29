@@ -16,10 +16,10 @@ import logoModelUrl from './assets/models/one.glb?url';
 import pbrMaterialUrl from '@src/assets/materials/freepbr-pitted-pbr-1/polished_concrete_basecolor.jpg?url';
 
 import { Reflector, ReflectorMaterial, floorPowerOfTwo } from "@src/modules/alien/alien.js";
-import { th } from "element-plus/lib/locale";
+import { EventEmitter } from "@src/unit/EventEmitter";
 
-import vertexShader from './vertexShader.glsl?raw';
-import fragmentShader from './fragmentShader.glsl?raw';
+import waterVertexShader from './shaders/water/vertexShader.glsl?raw';
+import waterFragmentShader from './shaders/water/fragmentShader.glsl?raw';
 import waterDrop from "@src/effects-components/water-drop";
 
 
@@ -71,42 +71,64 @@ class RenderManager {
 
 
 class GuiController {
-  worldController: WorldController
-  gui = new dat.GUI({ closed: true });
-  constructor(worldController: WorldController) {
-    this.worldController = worldController
+  view: View
+  guiwraperEl: HTMLElement
+  gui = new dat.GUI({ closed: false });
+  constructor(view: View, guiwraperEl?: HTMLElement) {
+    this.view = view
+    this.guiwraperEl = guiwraperEl ? guiwraperEl : this.view.viewraperEl
+    this.fixGui()
     //this.gui.hide();
+    //监听注销并销毁自己
+    const onUnmounted = () => {
+      this.gui.destroy()
+    }
+    this.view.on('unmounted', onUnmounted)
+
+    //安装参数修改
+    const onInited = () => {
+      this.setParameterController()
+    }
+    console.warn('做once')
+    this.view.worldController.on('inited', onInited)
+    this.setParameterController().catch(e => console.error(e))
   }
-  init() {
-    const { testLight, cameraController, animationController } = this.worldController
 
+  /**
+   * 修改debug位置
+   */
+  fixGui() {
+    const guiParentEl: HTMLElement = this.gui.domElement.parentElement!;
+    this.guiwraperEl.appendChild(guiParentEl);
+    //guiParentEl.style.position = "absolute";
+  }
 
-    /* 
-        .onChange((value) => {
-          //this.toggleAxesHelper(value);
-        }); */
-    //控制灯光
-    this.gui.add(testLight!.position, "y").setValue(20).min(-100).max(100).step(0.1)
-    this.gui.add(testLight!.position, "z").setValue(100).min(-100).max(100).step(0.1)
+  /**
+   * 装载各个调节器
+   */
+  async setParameterController() {
+    const { waterMaterialController, testLight, cameraController, animationController } = this.view.worldController
+    const { material: waterMaterial, parameter: waterMaterialParameter } = waterMaterialController
 
-    //控制摄像头
-    this.gui.add(animationController, "isScroll").setValue(true)
-    this.gui.add(cameraController.camera.position, "z").setValue(37).min(-200).max(37).step(0.1)
-    //this.gui.add(testLight!.position, "z").setValue(100).min(-100).max(100).step(0.1)
+    this.gui.add(waterMaterial.uniforms.uBigWavesElevation, 'value').min(0).max(1).step(0.001).name('uBigWavesElevation')
+    this.gui.add(waterMaterial.uniforms.uBigWavesFrequency.value, 'x').min(0).max(10).step(0.001).name('uBigWavesFrequencyX')
+    this.gui.add(waterMaterial.uniforms.uBigWavesFrequency.value, 'y').min(0).max(10).step(0.001).name('uBigWavesFrequencyY')
+    this.gui.add(waterMaterial.uniforms.uBigWavesSpeed, 'value').min(0).max(4).step(0.001).name('uBigWavesSpeed')
+    this.gui.add(waterMaterial.uniforms.uBigWavesSpeed, 'value').min(0).max(4).step(0.001).name('uBigWavesSpeed')
 
-    //三角形材质控制器
-    const triangleMaterialColor = { color: '#ffffff' }
-    this.gui.addColor(triangleMaterialColor, 'color').onChange(color => {
-      Triangle.material.emissive.setHex(parseInt(color.slice(1), 16))
-      Triangle.material.color.setHex(parseInt(color.slice(1), 16))
+    this.gui.add(waterMaterial.uniforms.uSmallWavesElevation, 'value').min(0).max(1).step(0.001).name('uSmallWavesElevation')
+    this.gui.add(waterMaterial.uniforms.uSmallWavesFrequency, 'value').min(0).max(30).step(0.001).name('uSmallWavesFrequency')
+    this.gui.add(waterMaterial.uniforms.uSmallWavesSpeed, 'value').min(0).max(4).step(0.001).name('uSmallWavesSpeed')
+    this.gui.add(waterMaterial.uniforms.uSmallWavesIterations, 'value').min(0).max(8).step(1).name('uSmallWavesIterations')
+
+    this.gui.addColor(waterMaterialParameter, 'depthColor').name('depthColor').onChange(() => {
+      waterMaterial.uniforms.uDepthColor.value.set(waterMaterialParameter.depthColor)
     })
-
-    const triangleMaterial = { metalness: 0 }
-
-    this.gui.add(triangleMaterial, "metalness").min(0).max(1).step(0.01).onChange(value => {
-      Triangle.material.metalness = value
+    this.gui.addColor(waterMaterialParameter, 'surfaceColor').name('surfaceColor').onChange(() => {
+      waterMaterial.uniforms.uSurfaceColor.value.set(waterMaterialParameter.surfaceColor)
     })
-
+    this.gui.add(waterMaterial.uniforms.uColorOffset, 'value').min(0).max(1).step(0.001).name('uColorOffset')
+    this.gui.add(waterMaterial.uniforms.uColorMultiplier, 'value').min(0).max(10).step(0.001).name('uColorMultiplier')
 
   }
 }
@@ -151,27 +173,6 @@ class AnimationController {
       light.intensity = intensity
     } else if (logoLightMoveProgress < 0.7) light.intensity = logoLightIntensityRange[0]
 
-
-    /**
-     * 三角形颜色变化
-     */
-    const triangleChengeRange = [5, 20]
-    const camera = this.worldController.cameraController.camera
-    const cameraZNow = camera.position.z
-    let metalness = 0, rgb = 0
-    if (cameraZNow < triangleChengeRange[0]) {
-      rgb = 255
-      metalness = 0
-    } else if (cameraZNow < triangleChengeRange[1]) {
-
-    } else {
-      rgb = 0
-      metalness = 1
-    }
-    Triangle.material.emissive.setRGB(rgb, rgb, rgb)
-    Triangle.material.color.setRGB(rgb, rgb, rgb)
-    Triangle.material.metalness = metalness
-
     /**
      * 镜头滚动
      */
@@ -198,19 +199,23 @@ class AnimationController {
 }
 
 
-class WorldController {
+class WorldController extends EventEmitter {
   view: View
 
   clock = new THREE.Clock();
   cameraController = new PerspectiveCameraController()
   sceneController = new SceneController()
-  guiController = new GuiController(this)
   animationController = new AnimationController(this)
   renderManager: RenderManager
 
   testLight?: THREE.Light
 
+
+  waterMaterialController = new WaterMaterialController()
+
   constructor(view: View) {
+    super()
+    //
     this.view = view
     this.renderManager = new RenderManager(this.view.canvasEl)
   }
@@ -237,28 +242,17 @@ class WorldController {
 
 
     // Geometry
-    const geometry = new THREE.PlaneBufferGeometry(2, 2, 128, 128)
+    const geometry = new THREE.PlaneBufferGeometry(2, 2, 512, 512)
 
-    // rawShaderMaterial
-    const meshBasicMaterial = new THREE.MeshBasicMaterial()
-    const rawShaderMaterial = new THREE.RawShaderMaterial({
-      vertexShader: vertexShader,
-      fragmentShader: fragmentShader,
-      wireframe: true
-    })
+
 
     // Mesh
-    const mesh = new THREE.Mesh(geometry, rawShaderMaterial)
+    const mesh = new THREE.Mesh(geometry, this.waterMaterialController.material)
     mesh.rotation.x = -Math.PI * 0.5
     this.sceneController.scene.add(mesh);
 
-
-
-    /**
-     * 控制台初始化
-     */
-    //this.guiController.init()
-
+    //
+    this.emit('inited')
   }
 
   /**
@@ -278,17 +272,24 @@ class WorldController {
    * 渲染入口
    */
   render() {
-    //更新世界
+    const elapsedTime = this.clock.getElapsedTime()
+
+    // 更新材质
+    this.waterMaterialController.update(elapsedTime)
+
+    // 更新世界
     this.cameraController.orbitControl?.update();
+
     //更新动画
     //this.animationController.update();
+
     //渲染
     this.renderManager.renderer.render(this.sceneController.scene, this.cameraController.camera);
   }
 }
 
 
-class View {
+class View extends EventEmitter {
   static dracoLoader = new DRACOLoader();
   static gltfLoader = new GLTFLoader();
   static svgLoader = new SVGLoader();
@@ -306,7 +307,10 @@ class View {
 
   worldController: WorldController
 
+  guiController?: GuiController
+
   constructor(canvasEl: HTMLElement, viewraperEl: HTMLElement) {
+    super();
     //设置对象
     this.canvasEl = canvasEl
     this.viewraperEl = viewraperEl
@@ -331,6 +335,13 @@ class View {
     //初始化大小
     this.resize()
   }
+
+  /**
+   * 装载界面修改器
+   */
+  addGuiController(guiwraperEl?: HTMLElement) {
+    this.guiController = new GuiController(this, guiwraperEl)
+  }
   /**
    * 重置大小 
    */
@@ -353,7 +364,10 @@ class View {
    * 反复渲染
    */
   render() {
+    // Render
     this.worldController.render()
+
+    // Loop
     window.requestAnimationFrame(() => this.render());
   }
 
@@ -361,7 +375,9 @@ class View {
    * 添加监听
    */
   mounted() {
+    //基础 窗口大小调整
     window.addEventListener('resize', this.resize)
+    //
     window.addEventListener('scroll', this.worldController.animationController.onScroll)
   }
 
@@ -369,8 +385,12 @@ class View {
    * 移除监听
    */
   unmounted() {
+    //基础 窗口大小调整
     window.removeEventListener('resize', this.resize)
+    //
     window.removeEventListener('scroll', this.worldController.animationController.onScroll)
+    //
+    this.emit('unmounted')
   }
 }
 
@@ -378,51 +398,42 @@ class View {
 export default View;
 
 
-class Triangle extends THREE.Group {
 
-  static geometrysPromise = View.svgLoader.loadAsync('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg"><path stroke-width="0.25" d="M 3 0 L 0 5 H 6 Z"/></svg>').then((data) => {
-    const geometrys = []
-    const paths = data.paths;
-    for (let i = 0, l = paths.length; i < l; i++) {
-      const path = paths[i];
 
-      for (let j = 0, jl = path.subPaths.length; j < jl; j++) {
-        const subPath = path.subPaths[j];
-        const geometry = SVGLoader.pointsToStroke(subPath.getPoints(), path?.userData?.style);
-
-        if (geometry) {
-          geometry.center();
-          geometrys.push(geometry)
-
-        }
-      }
-    }
-    return geometrys
-  });
-
-  //MeshPhongMaterial
-  //MeshPhysicalMaterial
-  static material = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff,
-    emissive: 0xffffff,
-  });
-
+// 水面材质 ShaderMaterial
+class WaterMaterialController {
+  parameter = {
+    depthColor: "#186691",
+    surfaceColor: "#9bd8ff",
+  }
+  material: THREE.ShaderMaterial
   constructor() {
-    super();
-  }
+    this.material = new THREE.ShaderMaterial({
+      wireframe: false,
+      vertexShader: waterVertexShader,
+      fragmentShader: waterFragmentShader,
+      uniforms: {
+        uTime: { value: 0 },
 
-  async initMesh() {
-    const geometrys = await Triangle.geometrysPromise
+        uBigWavesElevation: { value: 0.2 },
+        uBigWavesFrequency: { value: new THREE.Vector2(4, 1.5) },
+        uBigWavesSpeed: { value: 0.75 },
 
-    const group = new THREE.Group();
-    group.position.set(0, 3, 0);
-    group.scale.y *= -1;
+        uSmallWavesElevation: { value: 0.15 },
+        uSmallWavesFrequency: { value: 3.0 },
+        uSmallWavesSpeed: { value: 0.2 },
+        uSmallWavesIterations: { value: 4.0 },
 
-    geometrys.forEach(geometry => {
-      const mesh = new THREE.Mesh(geometry, Triangle.material);
-      group.add(mesh);
+        uDepthColor: { value: new THREE.Color(this.parameter.depthColor) },
+        uSurfaceColor: { value: new THREE.Color(this.parameter.surfaceColor) },
+        uColorOffset: { value: 0.08 },
+        uColorMultiplier: { value: 5 },
+      }
     })
-
-    this.add(group);
   }
+
+  update(time: number) {
+    this.material.uniforms.uTime.value = time
+  }
+
 }

@@ -1,10 +1,6 @@
 import * as THREE from "THREE";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { FontLoader, Font as FontLoaderFont } from "three/examples/jsm/loaders/FontLoader.js";
-import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry.js";
-import gsap from "gsap";
 import * as dat from "dat.gui";
-import { fromPairs } from "lodash";
 
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
@@ -12,16 +8,10 @@ import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 
 import PublicPath from "@src/unit/PublicPath"
 
-import logoModelUrl from './assets/models/one.glb?url';
-import pbrMaterialUrl from '@src/assets/materials/freepbr-pitted-pbr-1/polished_concrete_basecolor.jpg?url';
-
-import { Reflector, ReflectorMaterial, floorPowerOfTwo } from "@src/modules/alien/alien.js";
 import { EventEmitter } from "@src/unit/EventEmitter";
 
 import waterVertexShader from './shaders/water/vertexShader.glsl?raw';
 import waterFragmentShader from './shaders/water/fragmentShader.glsl?raw';
-import waterDrop from "@src/effects-components/water-drop";
-
 
 
 class PerspectiveCameraController {
@@ -135,52 +125,17 @@ class GuiController {
 
 
 class AnimationController {
-  clock: THREE.Clock
   worldController: WorldController
   isStop = false
   privateTime = 0
 
   constructor(worldController: WorldController) {
     this.worldController = worldController
-    this.clock = worldController.clock
   }
-  update() {
+  update(elapsedTime: number) {
     if (this.isStop) return;
-    const elapsedTime = this.clock.getElapsedTime()
     const deltaTime = elapsedTime - this.privateTime
     this.privateTime = elapsedTime
-
-    /**
-     * 灯光动画 
-     */
-    //位置变化
-    const logoLightMoveRange = [-100, 75]
-    const logoLightIntensityRange = [0, 80]
-    const light = this.worldController.testLight!
-    const zNow = light.position.z
-    let zNew = zNow + deltaTime * 30
-    zNew = zNew + (zNew > logoLightMoveRange[1] ? logoLightMoveRange[0] - logoLightMoveRange[1] : 0)
-    light.position.z = zNew
-    //强调变化
-    const logoLightMoveProgress = (zNew - logoLightMoveRange[0]) / (logoLightMoveRange[1] - logoLightMoveRange[0])
-    //console.log(logoLightMoveProgress)
-    const downSpot = 0.7, upSpot = 0.58
-    if (logoLightMoveProgress > downSpot) {
-      const intensity = logoLightIntensityRange[0] + (logoLightIntensityRange[1] - logoLightIntensityRange[0]) * (1 - (logoLightMoveProgress - downSpot) / (1 - downSpot))
-      light.intensity = intensity
-    } else if (logoLightMoveProgress < upSpot) {
-      const intensity = logoLightIntensityRange[0] + (logoLightIntensityRange[1] - logoLightIntensityRange[0]) * (logoLightMoveProgress / (1 - upSpot))
-      light.intensity = intensity
-    } else if (logoLightMoveProgress < 0.7) light.intensity = logoLightIntensityRange[0]
-
-    /**
-     * 镜头滚动
-     */
-    if (this.isScroll) {
-      const cameraPositionZRange = [-192, 37]
-      const positionZ = cameraPositionZRange[0] + (cameraPositionZRange[1] - cameraPositionZRange[0]) * this.scrollProgress
-      this.worldController.cameraController.camera.position.z = positionZ
-    }
   }
 
   isScroll = true
@@ -189,12 +144,7 @@ class AnimationController {
    * 滚动事件控制 
    */
   onScroll = () => {
-    const scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
-    const clientHeight = document.documentElement.clientHeight
-    const offsetHeight = document.documentElement.offsetHeight
-    const progress = scrollTop / (offsetHeight - clientHeight)
-    //console.log(progress)
-    this.scrollProgress = progress
+
   }
 }
 
@@ -224,7 +174,7 @@ class WorldController extends EventEmitter {
     /**
      * 场景中加入坐标提示器
      */
-    this.sceneController.setAxesHelper()
+    this.sceneController.setAxesHelper(false)
 
     /**
      * 摄像机初始化并加入场景
@@ -242,8 +192,7 @@ class WorldController extends EventEmitter {
 
 
     // Geometry
-    const geometry = new THREE.PlaneBufferGeometry(2, 2, 512, 512)
-
+    const geometry = new THREE.PlaneBufferGeometry(5, 5, 512, 512)
 
 
     // Mesh
@@ -285,7 +234,9 @@ class WorldController extends EventEmitter {
 
     //渲染
     this.renderManager.renderer.render(this.sceneController.scene, this.cameraController.camera);
+    //.dispose ( )
   }
+
 }
 
 
@@ -298,7 +249,6 @@ class View extends EventEmitter {
     width = 1920
     height = 1080
   }
-
 
   canvasEl: HTMLElement
   viewraperEl: HTMLElement
@@ -325,7 +275,10 @@ class View extends EventEmitter {
     View.gltfLoader.setDRACOLoader(View.dracoLoader);
 
     //创建世界
-    this.worldController = new WorldController(this)
+    this.worldController = new WorldController(this);
+
+    console.log(window);
+    (window as any).testss = this
   }
 
   init() {

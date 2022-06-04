@@ -13,7 +13,7 @@ const href = computed(() => new URL(window.location.pathname, window.location.or
   </div>
   <ul class="list">
     <li v-for="page in list">
-      <a :href="`${href}#${page?.id}`"><img :src="page?.coverUrl" :alt="page?.id" loading="lazy" /></a>
+      <a :href="`${href}#/${page?.id}`"><img :src="page?.coverUrl" :alt="page?.id" loading="lazy" /></a>
     </li>
   </ul>
 </template>

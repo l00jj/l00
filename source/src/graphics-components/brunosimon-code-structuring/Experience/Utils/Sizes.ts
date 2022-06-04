@@ -1,4 +1,4 @@
-import { EventEmitter } from '@src/unit/EventEmitter'
+import { EventEmitter } from '@src/utils/EventEmitter'
 
 export default class Sizes extends EventEmitter {
     // Setup
@@ -6,18 +6,36 @@ export default class Sizes extends EventEmitter {
     height = window.innerHeight;
     pixelRatio = Math.min(window.devicePixelRatio, 2)
 
+
+    onWindowResizeListener = () => {
+        this.width = window.innerWidth;
+        this.height = window.innerHeight;
+        this.pixelRatio = Math.min(window.devicePixelRatio, 2)
+
+        this.emit('resize')
+    }
+
     constructor() {
         super()
 
-        // Resize event        
-        window.addEventListener('resize', () => {
-            this.width = window.innerWidth;
-            this.height = window.innerHeight;
-            this.pixelRatio = Math.min(window.devicePixelRatio, 2)
+        // Resize event    
+        this.setWindowResizeEmitter()
+    }
 
-            this.emit('resize')
-        })
+    setWindowResizeEmitter() {
+        window.addEventListener('resize', this.onWindowResizeListener)
+    }
 
+    removeWindowResizeEmitter() {
+        window.removeEventListener('resize', this.onWindowResizeListener)
+    }
 
+    onResize(fun: Function) {
+        return this.on('resize', fun)
+    }
+
+    offResize() {
+        this.removeWindowResizeEmitter()
+        return this.offAll('resize')
     }
 }

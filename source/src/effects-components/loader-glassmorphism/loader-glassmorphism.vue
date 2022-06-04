@@ -20,10 +20,10 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-a">
+    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-b">
       <LoaderGlassmorphismA></LoaderGlassmorphismA>
     </div>
-    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-bc">
+    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-c">
       <LoaderGlassmorphismB></LoaderGlassmorphismB>
       <LoaderGlassmorphismC></LoaderGlassmorphismC>
     </div>

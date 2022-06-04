@@ -1,13 +1,12 @@
-import { EventEmitter } from '@src/unit/EventEmitter'
+import { EventEmitter } from '@src/utils/EventEmitter'
 
 export default class Time extends EventEmitter {
-    // Setup
     start: number
     current: number
     elapsed: number
     delta: number
-    constructor() {
 
+    constructor() {
         super()
 
         // Setup
@@ -18,7 +17,7 @@ export default class Time extends EventEmitter {
 
     }
 
-    tick() {
+    onTickLoopFunction = () => {
         const currentTime = Date.now()
         this.delta = currentTime - this.current
         this.current = currentTime
@@ -26,8 +25,30 @@ export default class Time extends EventEmitter {
 
         this.emit('tick');
 
-        window.requestAnimationFrame(() => {
-            this.tick()
-        })
+        window.requestAnimationFrame(this.currentTickLoopFunction)
     }
+
+    // 当清除时，函数为空函数已终结 requestAnimationFrame
+    currentTickLoopFunction = () => { }
+
+
+    // Tick 
+    tick() {
+        //避免重复启动 currentTickLoopFunction
+        if (this.currentTickLoopFunction !== this.onTickLoopFunction) {
+            this.currentTickLoopFunction = this.onTickLoopFunction
+            this.currentTickLoopFunction()
+        }
+    }
+
+
+    onTick(fun: Function) {
+        return this.on('tick', fun)
+    }
+
+    offTick() {
+        this.currentTickLoopFunction = () => { }
+        return this.offAll('tick')
+    }
+
 }

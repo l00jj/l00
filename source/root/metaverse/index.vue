@@ -13,11 +13,13 @@ const onHashchange = () => (currentPath.value = window.location.hash);
 onBeforeMount(() => window.addEventListener("hashchange", onHashchange));
 onUnmounted(() => window.removeEventListener("hashchange", onHashchange));
 const page = computed(() => {
-  const path = currentPath.value.slice(1);
+  //const hashCore = currentPath.value.slice(1);
+  const path = currentPath.value.split("/")[1];
+  console.warn("制作模板");
   let page = list.find((i) => i!.id === path);
   if (!page) {
     page = list[0];
-    if (path !== "") Alert404();
+    if (path) Alert404();
   }
   return page;
 });

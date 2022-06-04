@@ -8,7 +8,7 @@ export default class Renderer {
     experience: Experience
     canvas: HTMLElement
     sizes: Sizes
-    scence: THREE.Scene
+    scene: THREE.Scene
     camera: Camera
 
     instance!: THREE.WebGLRenderer
@@ -17,7 +17,7 @@ export default class Renderer {
         this.experience = experience
         this.canvas = this.experience.canvas
         this.sizes = this.experience.sizes
-        this.scence = this.experience.scence
+        this.scene = this.experience.scene
         this.camera = this.experience.camera
 
         this.setInstance()
@@ -44,6 +44,6 @@ export default class Renderer {
     }
 
     update() {
-        this.instance.render(this.scence, this.camera.instance)
+        this.instance.render(this.scene, this.camera.instance)
     }
 }

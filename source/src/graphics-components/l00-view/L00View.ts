@@ -10,7 +10,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 //
-import PublicPath from "@src/unit/PublicPath";
+import PublicPath from "@src/utils/PublicPath";
 import logoModelUrl from "./assets/models/one.glb?url";
 
 

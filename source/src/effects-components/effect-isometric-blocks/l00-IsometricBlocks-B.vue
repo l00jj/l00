@@ -67,7 +67,7 @@ const list = computed(() =>
       "
     >
       <li v-for="item in list">
-        <a href="">{{ item.title }}</a>
+        <a>{{ item.title }}</a>
       </li>
     </ul>
   </section>

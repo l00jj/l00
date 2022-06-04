@@ -15,7 +15,7 @@ const viewraper = ref();
 let experience: Experience;
 
 onUnmounted(() => {
-  //view?.unmounted();
+  experience?.destroy();
 });
 
 onMounted(() => {

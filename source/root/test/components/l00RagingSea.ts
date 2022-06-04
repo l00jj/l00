@@ -6,9 +6,9 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 
-import PublicPath from "@src/unit/PublicPath"
+import PublicPath from "@src/utils/PublicPath"
 
-import { EventEmitter } from "@src/unit/EventEmitter";
+import { EventEmitter } from "@src/utils/EventEmitter";
 
 import waterVertexShader from './shaders/water/vertexShader.glsl?raw';
 import waterFragmentShader from './shaders/water/fragmentShader.glsl?raw';

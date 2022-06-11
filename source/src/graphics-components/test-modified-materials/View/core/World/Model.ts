@@ -26,20 +26,103 @@ export default class Model {
         // Setup
         this.setMaterial()
         this.setModel()
+        this.setPlane()
         //this.setAnimation()
     }
 
+    // 自定义材质参数
+    customUniforms = {
+        uTime: { value: 0 }
+    }
+    // 材质
     material!: THREE.MeshStandardMaterial
+    customDepthMaterial!: THREE.MeshDepthMaterial
     setMaterial() {
         const modelMapTexture = this.main.resources.items.modelMapTexture as Texture
         modelMapTexture.encoding = THREE.sRGBEncoding
         const modelNormalTexture = this.main.resources.items.modelNormalTexture as Texture
+
+
+        const codeAngle = `float angle = sin(position.y + uTime) * 0.5;`
 
         // Material
         this.material = new THREE.MeshStandardMaterial({
             map: modelMapTexture,
             normalMap: modelNormalTexture
         })
+
+        // 
+        this.material.onBeforeCompile = (shader) => {
+
+            shader.uniforms.uTime = this.customUniforms.uTime
+
+            shader.vertexShader = shader.vertexShader.replace('#include <common>',
+                `
+            #include <common>
+            
+            uniform float uTime;
+
+            mat2 get2dRotateMatrix(float _angle){
+                return mat2(cos(_angle), - sin(_angle), sin(_angle), cos(_angle));
+            }
+
+            `)
+
+            shader.vertexShader = shader.vertexShader.replace('#include <beginnormal_vertex>',
+                `
+            #include <beginnormal_vertex>
+
+            ${codeAngle}
+            mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+
+            objectNormal.xz = rotateMatrix * objectNormal.xz;
+
+            `)
+
+            shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>',
+                `
+            #include <begin_vertex>
+            
+            transformed.xz = rotateMatrix * transformed.xz;
+            `)
+        }
+
+        // customDepthMaterial
+        this.customDepthMaterial = new THREE.MeshDepthMaterial({
+            depthPacking: THREE.RGBADepthPacking
+        })
+
+        this.customDepthMaterial.onBeforeCompile = (shader) => {
+
+            shader.uniforms.uTime = this.customUniforms.uTime
+
+            shader.vertexShader = shader.vertexShader.replace('#include <common>',
+                `
+            #include <common>
+            
+            uniform float uTime;
+
+            mat2 get2dRotateMatrix(float _angle){
+                return mat2(cos(_angle), - sin(_angle), sin(_angle), cos(_angle));
+            }
+            `)
+
+            shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>',
+                `
+            #include <begin_vertex>
+            
+            ${codeAngle}
+            mat2 rotateMatrix = get2dRotateMatrix(angle);
+
+            transformed.xz = rotateMatrix * transformed.xz;
+            `)
+        }
+    }
+
+    updateMaterial() {
+        const elapsedTime = this.time.elapsed / 1000
+        this.customUniforms.uTime.value = elapsedTime
     }
 
     resource!: GLTFModel
@@ -50,6 +133,7 @@ export default class Model {
         //this.model.scale.set(0.02, 0.02, 0.02)
         this.model.rotation.y = Math.PI * 0.5;
         this.model.material = this.material;
+        this.model.customDepthMaterial = this.customDepthMaterial
         this.scene.add(this.model)
 
         this.model.traverse((child: any) => {
@@ -59,6 +143,18 @@ export default class Model {
         })
     }
 
+
+    testPlane?: THREE.Mesh
+    setPlane() {
+        this.testPlane = new THREE.Mesh(
+            new THREE.PlaneBufferGeometry(15, 15, 15),
+            new THREE.MeshStandardMaterial()
+        )
+        this.testPlane.rotation.y = Math.PI
+        this.testPlane.position.y = -5
+        this.testPlane.position.z = 5
+        this.scene.add(this.testPlane)
+    }
 
     animation: any
     setAnimation() {
@@ -99,7 +195,8 @@ export default class Model {
         //[3:01:16]
     }
 
-    /* update() {
-        this.animation.mixer.update(this.time.delta * 0.001)
-    } */
+    update() {
+        this.updateMaterial()
+        //this.animation.mixer.update(this.time.delta * 0.001)
+    }
 }

@@ -3,6 +3,7 @@ import { onMounted } from "vue";
 import LoaderGlassmorphismA from "./l00-LoaderGlassmorphism-A.vue";
 import LoaderGlassmorphismB from "./l00-LoaderGlassmorphism-B.vue";
 import LoaderGlassmorphismC from "./l00-LoaderGlassmorphism-C.vue";
+import LoaderGlassmorphismD from "./l00-LoaderGlassmorphism-D.vue";
 
 /**
  * 根据载入url判断第一个显示的组件
@@ -20,12 +21,15 @@ onMounted(() => {
 
 <template>
   <div class="container">
-    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-b">
-      <LoaderGlassmorphismA></LoaderGlassmorphismA>
-    </div>
-    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-c">
+    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-bc">
       <LoaderGlassmorphismB></LoaderGlassmorphismB>
       <LoaderGlassmorphismC></LoaderGlassmorphismC>
+    </div>
+    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-d">
+      <LoaderGlassmorphismD></LoaderGlassmorphismD>
+    </div>
+    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="loader-glassmorphism-a">
+      <LoaderGlassmorphismA></LoaderGlassmorphismA>
     </div>
   </div>
 </template>

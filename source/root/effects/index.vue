@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, provide, defineAsyncComponent, onBeforeMount, onUnmounted } from "vue";
+import { ref, computed, provide, defineAsyncComponent, onUpdated, onBeforeMount, onUnmounted } from "vue";
 import TopMenu from "@src/components/TopMenu.vue";
 import list from "@src/stores/effectsList";
 import RightMenu from "./RightMenu.vue";
@@ -20,6 +20,14 @@ const page = computed(() => {
     if (path !== "") Alert404();
   }
   return page;
+});
+
+/**
+ * 更新时刷新至顶端
+ */
+onUpdated(() => {
+  //console.log('onUpdated')
+  window.scrollTo(0, 0);
 });
 
 const currentView = computed(() => {

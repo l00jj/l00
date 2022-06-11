@@ -6,7 +6,6 @@ import { Main, AddDebug, GUI, Resources, CubeTexture } from "../All"
 export default class Environment {
     main: Main
     scene: THREE.Scene
-    sunLight!: THREE.DirectionalLight
     resources: Resources
 
     // Debug
@@ -36,6 +35,7 @@ export default class Environment {
         this.scene.add(this.directionalLight)
     }
 
+    sunLight!: THREE.DirectionalLight
     setSunLight() {
         this.sunLight = new THREE.DirectionalLight('#ffffff', 4)
         this.sunLight.castShadow = true

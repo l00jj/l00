@@ -2,5 +2,15 @@ import { createApp } from 'vue'
 import index from './index.vue'
 import 'vite/modulepreload-polyfill'
 
+import list from '@src/stores/graphicsList';
+import ProjectsRouter from '@src/components/Projects/ProjectsRouter'
+
 const app = createApp(index)
-app.mount('#app')
+
+//
+const projectsRouter = new ProjectsRouter(list, () => import('./IndexPage.vue'))
+app.use(projectsRouter.router)
+app.provide("projectsRouter", projectsRouter)
+
+//
+app.mount('#app');

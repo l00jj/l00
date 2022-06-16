@@ -1,45 +1,21 @@
 <script setup lang="ts">
-import { onMounted } from "vue";
-import ModernB from "./l00-Modern-B.vue";
+import ViewGroup from "@src/components/Projects/EffectsProjectView_Group.vue";
+import ViewItem from "@src/components/Projects/EffectsProjectView_Item.vue";
 
-/**
- * 根据载入url判断第一个显示的组件
- */
-const componentList: any[] = [];
-onMounted(() => {
-  const toTopName = window.location.hash.slice(1);
-  componentList.forEach((componentEl: HTMLElement) => {
-    const componentName = componentEl.dataset.name;
-    if (componentName && componentName === toTopName) componentEl.classList.add("top");
-    else componentEl.classList.remove("top");
-  });
-});
+import ModernA from "./l00-Modern-A.vue";
+import ModernB from "./l00-Modern-B.vue";
 </script>
 
 <template>
-  <div class="container">
-    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="effect-modern-b">
+  <ViewGroup>
+    <ViewItem style="height: 80vh" name="effect-modern-b">
       <ModernB></ModernB>
-    </div>
-  </div>
+    </ViewItem>
+
+    <ViewItem style="height: 80vh" name="effect-modern-a">
+      <ModernA></ModernA>
+    </ViewItem>
+  </ViewGroup>
 </template>
 
-<style scoped>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-.container {
-  display: flex;
-  flex-direction: column;
-}
-
-.container .container-item {
-  display: flex;
-  height: 80vh;
-}
-.container .container-item.top {
-  order: -1;
-}
-</style>
+<style scoped></style>

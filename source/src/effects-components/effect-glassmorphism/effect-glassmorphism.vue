@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
-import EffectGlassmorphismA from "./l00-EffectGlassmorphism-A.vue";
 import EffectGlassmorphismB_Group from "./l00-EffectGlassmorphismB-Group.vue";
 import EffectGlassmorphismB_Item from "./l00-EffectGlassmorphismB-Item.vue";
 import EffectGlassmorphismC from "./l00-EffectGlassmorphism-C.vue";
@@ -56,10 +55,6 @@ onMounted(() => {
           <a><span>chat</span></a>
         </EffectGlassmorphismB_Item>
       </EffectGlassmorphismB_Group>
-    </div>
-    <!--  -->
-    <div class="container-item" :ref="(el) => componentList.push(el)" data-name="effect-glassmorphism-a">
-      <EffectGlassmorphismA></EffectGlassmorphismA>
     </div>
     <!--  -->
   </div>

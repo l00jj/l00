@@ -265,8 +265,12 @@ https://thebookofshaders.com/
 [34:16] 创建多个基础图形的节省方案，BufferGeometryUtils
 
 # 34_Intro_and_loading_progress [49:55]
+[14:21] 使用loadingManager
+[45:00] css中使用 will-change可以让GPU缓存动画，更流畅一些
 
 # 35_Mixing_HTML_and_WebGL [58:08]
+[44:06] 使用 Raycaster 去确定点击物
+[] 使用混合HTML元素始终是不利于性能
 
 # 36_Creating_a_scene_in_Blender [2:05:04]
 
@@ -275,5 +279,6 @@ https://thebookofshaders.com/
 # 38_Importing_and_optimizing_the_scene [48:18]
 
 # 39_Adding_details_to_the_scene [1:34:52]
+[47:07] THREE.AdditiveBlending 会对亮点大小有变化影响，很适合镜头移动的动态效果
 
 # 40_The_end [03:50

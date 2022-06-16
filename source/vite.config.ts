@@ -10,6 +10,10 @@ const commonConfig: UserConfigExport = {
     host: '0.0.0.0',//用于内网查看
   },
 
+  preview: {
+    port: 8080
+  },
+
   root: resolve(__dirname, './root'),
   base: '/',
   publicDir: resolve(__dirname, './public'),

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, defineAsyncComponent, onBeforeMount, onUnmounted } from "vue";
 import pageList from "@src/stores/effectsList";
-const list = computed(() => pageList.slice(1));
+const list = computed(() => pageList);
 </script>
 
 <template>

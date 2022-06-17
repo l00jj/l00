@@ -18,8 +18,12 @@ const isTop = computed(() => routeName.value === props.name);
 
 <style scoped>
 .effectsProjectView-item {
+  position: relative;
   display: flex;
+  justify-content: center;
+  align-items: center;
   height: 100vh;
+  overflow: hidden;
 }
 
 .effectsProjectView-item.top {

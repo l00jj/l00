@@ -22,21 +22,48 @@ const stopWatch = watch(isCover, () => {
   const camera = view.camera;
   if (isCover.value) {
     // 复制现有参数
-    currentCameraOption.fov = camera.instance.fov;
-    currentCameraOption.position = camera.instance.position.clone();
+    if (camera.controls.enabled) {
+      currentCameraOption.fov = camera.instance.fov;
+      currentCameraOption.position = camera.instance.position.clone();
+    }
     // 转为正面
     camera.controls.enabled = false;
+    camera.controls.enableDamping = false;
     camera.instance.fov = 90;
-    camera.instance.position.set(0, 0, 1);
-    camera.instance.lookAt(0, 0, 0);
     camera.instance.updateProjectionMatrix();
+    window.requestAnimationFrame(() => {
+      camera.instance.position.set(0, 0, 1);
+      camera.instance.lookAt(0, 0, 0);
+    });
   } else {
+    camera.controls.enableDamping = true;
     camera.controls.enabled = true;
     camera.instance.fov = currentCameraOption.fov;
     camera.instance.position.copy(currentCameraOption.position);
     camera.instance.updateProjectionMatrix();
   }
 });
+
+/**
+ * 截图功能
+ */
+class Capture {
+  url: string;
+  constructor(url: string) {
+    this.url = url;
+  }
+}
+const capturesList: Set<Capture> = reactive(new Set());
+const toCapture = () => {
+  const canvasEl: HTMLCanvasElement = canvas.value as HTMLCanvasElement;
+  view.renderer.coreRenderer.render();
+  const url = canvasEl.toDataURL("image/png");
+  const capture = new Capture(url);
+  capturesList.add(capture);
+};
+const toDeleteCapture = async (capture: Capture) => {
+  capturesList.delete(capture);
+};
 
 /**
  * 视图元素
@@ -70,27 +97,42 @@ onUnmounted(() => {
   <div class="container" v-bind="$attrs">
     <section class="patterns">
       <div class="codepart" v-for="pattern in patternsList">
-        <div class="title">Pattern {{ pattern.number }}</div>
+        <div class="header">
+          <h1 class="title">Pattern {{ pattern.number }}</h1>
+          <img class="preview" width="100" height="100" v-if="pattern.previewUrl" :src="pattern.previewUrl" />
+        </div>
         <div class="code" v-if="pattern.vertex">
           <textarea rows="5" v-model="pattern.vertex"></textarea>
         </div>
         <div class="code" v-if="pattern.fragment">
           <textarea rows="30" v-model="pattern.fragment"></textarea>
         </div>
-        <div
-          style="width: 100px; height: 100px; display: block; cursor: pointer; background: red; align-self: flex-end"
-          @click="toUpdateMaterial(pattern)"
-        ></div>
+        <div class="updatecode" @click="toUpdateMaterial(pattern)">Use This Shader</div>
       </div>
     </section>
 
-    <div class="render">
-      <section class="view" ref="viewArea">
-        <div class="background"></div>
-        <canvas class="" ref="canvas"></canvas>
-      </section>
-      <div class="" style="margin: 20px 0">
-        <button @click="() => (isCover = !isCover)">{{ isCover ? "自由视角" : "正面查看" }}</button>
+    <div class="right-panel">
+      <div class="render">
+        <section class="view" ref="viewArea">
+          <div class="background"></div>
+          <canvas class="" ref="canvas"></canvas>
+        </section>
+      </div>
+      <div class="console">
+        <ul class="controls">
+          <li>
+            <button @click="() => (isCover = !isCover)">{{ isCover ? "自由视角" : "正面查看" }}</button>
+          </li>
+          <li>
+            <button @click="toCapture">截图</button>
+          </li>
+        </ul>
+        <ul class="captures">
+          <li v-for="capture in capturesList">
+            <span class="delete" @click="toDeleteCapture(capture)"></span>
+            <img width="100" height="100" :src="capture.url" />
+          </li>
+        </ul>
       </div>
     </div>
   </div>
@@ -113,8 +155,20 @@ onUnmounted(() => {
   width: calc(var(--codepartWidth) + var(--viewWidth));
   padding: 2em;
 }
-.patterns .title {
-  font-size: 2em;
+
+.patterns .header {
+  position: relative;
+  height: 6em;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+}
+.patterns .header .title {
+  margin: 0;
+}
+.patterns .header .preview {
+  position: absolute;
+  right: 0;
 }
 
 .patterns .codepart {
@@ -122,24 +176,93 @@ onUnmounted(() => {
   width: var(--codepartWidth);
   display: flex;
   flex-direction: column;
-  margin: 3em 0;
+  margin: 4em 0;
 }
 
 .patterns .code textarea {
   position: relative;
   width: 100%;
 }
+.patterns .codepart .updatecode {
+  cursor: pointer;
+  width: 100%;
+  height: 38px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  background: #333;
+  border: 1px solid #000;
+  border-radius: 3px;
+}
 
-.render {
+.right-panel {
+  --panelWidth: 600px;
   position: fixed;
   left: 50%;
   width: 50%;
   height: 100%;
   display: flex;
-  padding: 20px;
-  justify-content: center;
   flex-direction: column;
+  justify-content: center;
+  padding: 20px;
 }
+.right-panel .render {
+  position: relative;
+  width: var(--panelWidth);
+  height: var(--panelWidth);
+  overflow: hidden;
+}
+.right-panel .console {
+  position: relative;
+  width: var(--panelWidth);
+}
+
+.right-panel .console ul.controls {
+  display: flex;
+  justify-content: space-between;
+  padding: 0;
+  margin: 20px 0;
+  list-style: none;
+}
+.right-panel .console ul.controls li:not(:first-child) {
+  margin-left: 5em;
+}
+
+.right-panel .console ul.captures {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  padding: 0;
+  margin: 20px 0;
+  list-style: none;
+  overflow: auto;
+}
+
+.right-panel .console ul.captures li {
+  position: relative;
+  margin: 10px;
+}
+.right-panel .console ul.captures li span.delete::before {
+  cursor: pointer;
+  content: "+";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  background-color: red;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  transform: rotate(45deg) translate(0%, -50%);
+}
+
 section.view {
   position: relative;
   width: 600px;

@@ -3,7 +3,7 @@ export default {
   coverUrl,
   "title": "炫光边框效果",
   "tags": ["border", "blur"],
-  //"urls": ["https://www.youtube.com/watch?v=qXj-KdVtPRA"],
+  //"urls": ["https://www.youtube.com/watch?v=w0V4HAYYCbU"],
   "date": "2022.05.06 07:00:00",
-  "vue": () => import('@src/effects-components/effect-neon/effect-neon.vue')
+  "vue": () => import('@src/effects-components/effect-dazzle-edge/effect-dazzle-edge.vue')
 };

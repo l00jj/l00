@@ -1,24 +1,16 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onUnmounted, watchEffect, WatchStopHandle, defineExpose } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
+import { froundFix } from "@src/utils/Tools";
 
-const props = defineProps<{
-  color?: string;
-}>();
+//const props = defineProps<{}>();
 
-const parameter = reactive({
-  //
-  backgroundColor: "#000",
-});
-defineExpose({ parameter });
+const parameter = {
+  backgroundColor: `#000`,
+};
 
-const froundFix = (input: number, n: number) => ((n = 10 ** n), Math.round(input * n) / n); //保留小数
-
-const mainStyle = computed(() => {
-  return Object.entries({
-    //原生 style
-    "background-color": parameter.backgroundColor,
-  }).reduce((v, i) => `${v}${i[0]}:${i[1]};`, "");
-});
+const mainStyle = {
+  backgroundColor: `${parameter.backgroundColor}`,
+};
 </script>
 
 <template>

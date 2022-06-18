@@ -43,7 +43,7 @@ const list: CustomShader[] = (() => {
     const list: CustomShader[] = []
     Object.entries(map).forEach(([key, item]) => {
         const customShader = item as CustomShader
-        const numberStr: any = key.match(/\d+/)
+        const numberStr: any = key.match(/\d+/)     
         const number = numberStr ? parseInt(numberStr[0]) : 0
         const index = number - 1
         customShader.number = number

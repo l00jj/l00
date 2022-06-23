@@ -1,5 +1,5 @@
-//import coverUrl from './index.jpg?url';
-import coverUrl from '@src/assets/designs/graphics-components-developing.jpg?url';
+import coverUrl from './index.jpg?url';
+//import coverUrl from '@src/assets/designs/graphics-components-developing.jpg?url';
 export default {
     coverUrl,
     "title": "",

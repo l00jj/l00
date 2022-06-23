@@ -91,7 +91,7 @@ onMounted(() => {
 <style scoped>
 @font-face {
   font-family: "ionicons";
-  src: url("@src/assets/icons/iconicons/ionicons.ttf");
+  src: url("@src/assets/icons/ionicons/docs/fonts/ionicons.woff2");
 }
 
 * {

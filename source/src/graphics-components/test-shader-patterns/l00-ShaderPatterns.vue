@@ -7,7 +7,6 @@ import updateMaterial from "./updateMaterial";
 //
 //const props = defineProps<{}>();
 
-console.log(patternsList);
 const toUpdateMaterial = (customShader: CustomShader) => {
   const { fragment, vertex } = customShader;
   const input: any = {};

@@ -5,10 +5,15 @@ import ViewItem from "@src/components/Projects/EffectsProjectView_Item.vue";
 import DazzleBorderA from "./l00-DazzleEdge-A.vue";
 import DazzleBorderASMode from "./l00-DazzleEdge-A-SMode.vue";
 import DazzleBorderD from "./l00-DazzleEdge-D.vue";
+import DazzleBorderButtonA from "./l00-DazzleEdge-Button-A.vue";
 </script>
 
 <template>
   <ViewGroup>
+    <ViewItem style="height: 90vh; background: #0e1538" name="effect-dazzle-edge-button-a">
+      <DazzleBorderButtonA></DazzleBorderButtonA>
+      <DazzleBorderButtonA></DazzleBorderButtonA>
+    </ViewItem>
     <ViewItem style="height: 90vh; background: #0e1538" name="effect-dazzle-edge-d">
       <div class="float" style="position: absolute; top: 10%; left: 5%">
         <DazzleBorderD></DazzleBorderD>

@@ -45,16 +45,17 @@ const onMouseenter = (event: MouseEvent) => {
   marker.style.width = el.offsetWidth;
   marker.style.height = el.offsetHeight;
 };
-
+const ul = ref<HTMLElement>();
 onMounted(() => {
-  //如有需要可以用ref整个li做状态管理
-  onMouseenter({ target: window.document.querySelector(".list > li") } as MouseEvent);
+  // 如有需要可以用ref整个li做状态管理
+  // 下面需要初始化一下光标位置
+  if (ul.value) onMouseenter({ target: ul.value.querySelector("li") } as MouseEvent);
 });
 </script>
 
 <template>
   <section :style="mainStyle">
-    <ul class="list">
+    <ul class="list" ref="ul">
       <span class="marker" :style="markerStyle"></span>
       <li v-for="item in list" @mouseenter.self="onMouseenter">
         <a>{{ item }}</a>

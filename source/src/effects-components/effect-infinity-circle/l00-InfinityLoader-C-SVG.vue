@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from "vue";
 import { froundFix } from "@src/utils/Tools";
-import { url } from "inspector";
 
 //const props = defineProps<{}>();
 

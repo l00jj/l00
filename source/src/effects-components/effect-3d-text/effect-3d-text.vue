@@ -3,7 +3,8 @@ import ViewGroup from "@src/components/Projects/EffectsProjectView_Group.vue";
 import ViewItem from "@src/components/Projects/EffectsProjectView_Item.vue";
 
 import Text3D from "./l00-Text3D-A.vue";
-import CircleText3DA from "./l00-CircleText3D-A.vue";
+import Circle3DTextA from "./l00-Circle3DText-A.vue";
+import Isometric3DTextA from "./l00-Isometric3DText-A.vue";
 </script>
 
 <template>
@@ -15,7 +16,11 @@ import CircleText3DA from "./l00-CircleText3D-A.vue";
     </ViewItem>
 
     <ViewItem style="height: 100vh" name="effect-3d-text-circle-a">
-      <CircleText3DA text="Welcome to l00 - 3D Circle Text Effects"></CircleText3DA>
+      <Circle3DTextA text="Welcome to l00 - 3D Circle Text Effects"></Circle3DTextA>
+    </ViewItem>
+
+    <ViewItem style="height: 100vh" name="effect-3d-text-isometric-a">
+      <Isometric3DTextA text="CSS 3D Isometric Text"></Isometric3DTextA>
     </ViewItem>
   </ViewGroup>
 </template>

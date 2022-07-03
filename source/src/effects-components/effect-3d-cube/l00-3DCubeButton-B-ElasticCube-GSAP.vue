@@ -22,18 +22,8 @@ const cubeStyle = reactive({
   "--uvu": "",
   "--uvv": "",
 });
-
-const stopWatchEffect: WatchStopHandle = watchEffect(() => {
-  cubeStyle["--width"] = `${props.width}px`;
-  cubeStyle["--height"] = `${props.height}px`;
-  cubeStyle["--length"] = `${props.length}px`;
-  cubeStyle["--colorFront"] = `${props.color && props.color[0] ? props.color[0] : `#f1f1f1`}`;
-  cubeStyle["--colorTop"] = `${props.color && props.color[1] ? props.color[1] : `#fff`}`;
-  cubeStyle["--colorLeft"] = `${props.color && props.color[2] ? props.color[2] : `#e1e1e1`}`;
-  //cubeStyle["--uvu"] = `${props.uvu ? props.uvu : 0}px`;
-  cubeStyle["--uvv"] = `${props.uvv ? props.uvv : 0}px`;
-  console.log("stopWatchEffect");
-});
+//
+let isInit = true;
 
 // 暂时只支持横向动画
 const cubeTarget = ref();
@@ -41,10 +31,40 @@ const stopWatchGSAPEffect: WatchStopHandle = watchEffect(() => {
   if (!cubeTarget.value) return;
   const cubeTargetEl = cubeTarget.value;
   const uvu = props.uvu;
+  //
   gsap.to(cubeTargetEl, {
     "--uvu": gsap.utils.unitize(() => uvu, "px"),
-    duration: 2,
-    ease: "elastic.out(1, 0.5)",
+    duration: 3,
+    ease: "elastic.out(1, 0.3)",
+  });
+});
+
+const stopWatchEffect: WatchStopHandle = watchEffect(() => {
+  if (!cubeTarget.value) return;
+  const cubeTargetEl = cubeTarget.value;
+  //
+  const width = props.width;
+  const height = props.height;
+  const length = props.length;
+  //
+  const colorFront = props.color && props.color[0] ? props.color[0] : `#f1f1f1`;
+  const colorTop = props.color && props.color[1] ? props.color[1] : `#fff`;
+  const colorLeft = props.color && props.color[2] ? props.color[2] : `#e1e1e1`;
+  //
+  const gto = isInit ? gsap.set : gsap.to;
+  isInit = false;
+  //
+  gto(cubeTargetEl, {
+    "--width": gsap.utils.unitize(() => width, "px"),
+    "--height": gsap.utils.unitize(() => height, "px"),
+    "--length": gsap.utils.unitize(() => length, "px"),
+    //
+    "--colorFront": colorFront,
+    "--colorTop": colorTop,
+    "--colorLeft": colorLeft,
+    //
+    duration: 1,
+    ease: "none",
   });
 });
 
@@ -59,7 +79,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="cube" :style="cubeStyle">
+  <div class="cube">
     <div class="view">
       <div class="target" ref="cubeTarget">
         <span class="face backShadow"></span>
@@ -93,12 +113,17 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  transform: translate(var(--uvu), var(--uvv));
+  transform: translate(var(--uvu), 0);
+  /* will-change: transform; */
 }
-/* .cube .target, 用GASPd代替*/
+
+/*
+ * 用GASPd代替
+.cube .target, 
 .cube .face {
   transition: 1s linear;
 }
+*/
 
 .cube .face.back {
   position: relative;

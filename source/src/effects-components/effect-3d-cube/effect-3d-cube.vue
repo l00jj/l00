@@ -7,6 +7,7 @@ import Cube3DA from "./l00-3DCube-A.vue";
 import Cube3DB from "./l00-3DCube-B.vue";
 import Cube3DButtonA from "./l00-3DCubeButton-A.vue";
 import Cube3DButtonB from "./l00-3DCubeButton-B.vue";
+import Cube3DCardA from "./l00-3DCubeCard-A.vue";
 </script>
 
 <template>
@@ -21,6 +22,10 @@ import Cube3DButtonB from "./l00-3DCubeButton-B.vue";
 
     <ViewItem style="height: 80vh" name="effect-3d-cube-button-b">
       <Cube3DButtonB></Cube3DButtonB>
+    </ViewItem>
+
+    <ViewItem style="height: 80vh" name="effect-3d-cube-card-a">
+      <Cube3DCardA></Cube3DCardA>
     </ViewItem>
 
     <ViewItem style="height: 80vh" name="effect-3d-cube-button-a">

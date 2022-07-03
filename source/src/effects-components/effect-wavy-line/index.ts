@@ -1,3 +1,4 @@
+//import coverUrl from '@src/assets/designs/effects-components-developing.jpg?url';
 import coverUrl from './index.jpg?url';
 export default {
   coverUrl,

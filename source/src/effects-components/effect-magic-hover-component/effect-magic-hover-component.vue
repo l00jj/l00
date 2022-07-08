@@ -9,6 +9,7 @@ import MagicInputA from "./l00-MagicInput-A.vue";
 import ClaymorphismListA from "./l00-ClaymorphismList-A.vue";
 import MagicMenuB from "./l00-MagicMenu-B.vue";
 import SpreadMenuC from "./l00-SpreadMenu-C.vue";
+import MagicMenuC from "./l00-MagicMenu-C.vue";
 </script>
 
 <template>
@@ -19,6 +20,10 @@ import SpreadMenuC from "./l00-SpreadMenu-C.vue";
 
     <ViewItem style="height: 90vh" name="effect-magic-hover-component-spread-menu-c">
       <SpreadMenuC></SpreadMenuC>
+    </ViewItem>
+
+    <ViewItem style="height: 85vh" name="effect-magic-hover-component-magic-menu-c">
+      <MagicMenuC></MagicMenuC>
     </ViewItem>
 
     <ViewItem style="height: 85vh; background: #1b2b3a" name="effect-magic-hover-component-magic-input-a">

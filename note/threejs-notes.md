@@ -37,6 +37,7 @@ gui如何触发自定义事件
 [28:46] 取消表面平滑
 [40:00] 大量形状建立优化生成过程
 [1:17:34] HDR网站推荐
+[matcaps](https://github.com/nidorx/matcaps) matcaps烘焙贴图
 [hdrihaven.com](https://polyhaven.com/) 免费HDR
 [matheowis.github.io/HRDI-to-CubeMap](https://matheowis.github.io/HDRI-to-CubeMap/) HDR图切割正方体视图
 

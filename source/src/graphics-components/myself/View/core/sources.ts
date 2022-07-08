@@ -12,18 +12,8 @@ export default [
         ]
     },
     {
-        name: 'model',
-        type: 'gltfDracoModel',
-        path: new URL('../../assets/models/DamagedHelmet/glTF-Embedded/DamagedHelmet.gltf?url', import.meta.url).href,
-    },
-    {
         name: 'model-me',
         type: 'gltfDracoModel',
         path: new URL('../../assets/models/me/me.gltf?url', import.meta.url).href,
     },
-    {
-        name: 'interfaceNormalMap',
-        type: 'texture',
-        path: new URL('../../assets/textures/interfaceNormalMap.png?url', import.meta.url).href,
-    }
 ]

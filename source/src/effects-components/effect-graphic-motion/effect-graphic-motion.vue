@@ -4,7 +4,7 @@ import ViewItem from "@src/components/Projects/EffectsProjectView_Item.vue";
 
 import GraphicMotionA from "./l00-GraphicMotion-A.vue";
 import GraphicMotionB from "./l00-GraphicMotion-B.vue";
-import GraphicMotionFlyingTextA from "./l00-GraphicMotionFlyingText-A.vue";
+import GlowingDotsA from "./l00-GlowingDots-A.vue";
 </script>
 
 <template>
@@ -17,8 +17,8 @@ import GraphicMotionFlyingTextA from "./l00-GraphicMotionFlyingText-A.vue";
       <GraphicMotionB></GraphicMotionB>
     </ViewItem>
 
-    <ViewItem style="height: 100vh" name="effect-graphic-motion-flying-text-a">
-      <GraphicMotionFlyingTextA></GraphicMotionFlyingTextA>
+    <ViewItem style="height: 100vh" name="effect-graphic-motion-glowing-dots-a">
+      <GlowingDotsA></GlowingDotsA>
     </ViewItem>
   </ViewGroup>
 </template>

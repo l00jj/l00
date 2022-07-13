@@ -264,6 +264,7 @@ https://thebookofshaders.com/
 [25:10] 必要时甚至可以2帧更新一次阴影
 [29:03] 适当使用TinyPng去压缩图片，是否使用取决于具体使用情况
 [34:16] 创建多个基础图形的节省方案，BufferGeometryUtils
+[1:12:15] 总结: https://discoverthreejs.com/tips-and-tricks/
 
 # 34_Intro_and_loading_progress [49:55]
 [14:21] 使用loadingManager

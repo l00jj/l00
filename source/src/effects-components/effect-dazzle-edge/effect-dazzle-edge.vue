@@ -6,6 +6,7 @@ import DazzleBorderA from "./l00-DazzleEdge-A.vue";
 import DazzleBorderASMode from "./l00-DazzleEdge-A-SMode.vue";
 import DazzleBorderD from "./l00-DazzleEdge-D.vue";
 import DazzleBorderButtonA from "./l00-DazzleEdge-Button-A.vue";
+import DazzleEdgeC from "./l00-DazzleEdge-C.vue";
 </script>
 
 <template>
@@ -13,6 +14,23 @@ import DazzleBorderButtonA from "./l00-DazzleEdge-Button-A.vue";
     <ViewItem style="height: 90vh; background: #0e1538" name="effect-dazzle-edge-button-a">
       <DazzleBorderButtonA></DazzleBorderButtonA>
       <DazzleBorderButtonA></DazzleBorderButtonA>
+    </ViewItem>
+    <ViewItem style="height: 90vh; background: #0e1538" name="effect-dazzle-edge-c">
+      <div class="float" style="position: absolute; top: 10%; left: 5%">
+        <DazzleEdgeC></DazzleEdgeC>
+      </div>
+      <div class="float" style="position: absolute; top: 20%; left: 90%">
+        <DazzleEdgeC></DazzleEdgeC>
+      </div>
+      <div class="float" style="position: absolute; top: 90%; left: 10%">
+        <DazzleEdgeC></DazzleEdgeC>
+      </div>
+      <div class="float" style="position: absolute; top: 95%; left: 80%">
+        <DazzleEdgeC></DazzleEdgeC>
+      </div>
+      <DazzleEdgeC>
+        <h2 style="font-size: 3em; color: #fff">Dazzle</h2>
+      </DazzleEdgeC>
     </ViewItem>
     <ViewItem style="height: 90vh; background: #0e1538" name="effect-dazzle-edge-d">
       <div class="float" style="position: absolute; top: 10%; left: 5%">

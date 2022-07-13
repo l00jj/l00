@@ -1,92 +1,90 @@
 <script setup lang="ts">
-import { reactive, ref, computed, watchEffect, onMounted, onUnmounted } from "vue";
-import View from "./View/index";
+import { reactive, ref, defineAsyncComponent, provide, onMounted, onUnmounted } from "vue";
 
-import Section1 from "./Section-1.vue";
+import { RendersAreaMap } from "./components/UtilRendersAreaMap";
+import { LoadingManager } from "./components/UtilLoadingManager";
 
-//
-const section1 = ref<HTMLElement>();
-const section2 = ref();
+import SectionFirstLoad from "./components/Section-FirstLoad.vue";
+import SectionDebug from "./components/Section-Debug.vue";
 
-const section1Scroll = ref(0);
-
-const commander = () => {
-  //window.document.documentElement
-  /*  const scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
-
-  const section1El = section1.value as HTMLElement;
-  if (scrollTop < section1El.offsetTop + section1El.offsetHeight) {
-    section1Progress.value = (scrollTop - section1El.offsetTop) / section1El.offsetHeight;
-  } else {
-    section1Progress.value = 1;
-  }
+/**
+ * 监听滚动
  */
-  //window.document.body.offsetTop
-  //window.document.documentElement.offsetTop
-  //console.log(viewArea1.top, viewArea1.height);
-
-  //window.document.documentElement.offsetTop
-
+const scrollMidline = ref(0);
+const onScroll = () => {
   const scrollTop = document.documentElement.scrollTop || window.pageYOffset || document.body.scrollTop;
   const clientHeight = document.documentElement.clientHeight || document.body.clientHeight;
-  section1Scroll.value = scrollTop + clientHeight / 2;
-};
-commander();
-//
-const onScroll = () => {
-  commander();
+  scrollMidline.value = scrollTop + clientHeight / 2;
 };
 onMounted(() => {
   window.addEventListener("scroll", onScroll);
+  onScroll();
 });
 onUnmounted(() => {
   window.removeEventListener("scroll", onScroll);
 });
+
+/**
+ * 监听资源加载情况
+ */
+let isReady = ref(false);
+const loadingManager = reactive(new LoadingManager());
+loadingManager.onReady(() => (isReady.value = true));
+onUnmounted(() => loadingManager.destroy());
+provide("loadingManager", loadingManager);
+
+/**
+ * 按区域启动和暂停渲染
+ */
+const rendersAreaMap = new RendersAreaMap();
+onUnmounted(() => rendersAreaMap.destroy());
+provide("rendersAreaMap", rendersAreaMap);
+
+/**
+ * Debug
+ */
+const isDebug = ref(window.location.hash.includes("debug"));
+
+/**
+ * 异步载入
+ */
+const AsyncMainComp = defineAsyncComponent(() => import("./l00-Home-Main.vue"));
 </script>
 
 <template>
-  <section ref="viewArea">
-    <Section1 :scroll="section1Scroll"></Section1>
-  
-    <!--  <div class="section1" ref="section1">
-      
-    </div>
-    <div class="section2" ref="section2">
-      <Section2 ref="section2"></Section2>
-    </div>
-
-      <SectionMyself class="section-myself"></SectionMyself>
-    <div style="  position: relative;width:100vw;height:50px;background: red;"></div> -->
-  </section>
+  <!-- 加载环节 -->
+  <SectionFirstLoad
+    :loaded="loadingManager.loaded"
+    :loadTotal="loadingManager.loadTotal"
+    :progress="loadingManager.loaded / loadingManager.loadTotal"
+    :isReady="isReady"
+    class="loading"
+  ></SectionFirstLoad>
+  <!-- 正式内容 -->
+  <AsyncMainComp
+    class="main"
+    :class="{ debug: isDebug, loading: !isReady }"
+    :scrollMidline="scrollMidline"
+  ></AsyncMainComp>
+  <!-- debug界面 -->
+  <SectionDebug v-if="isDebug" :rendersAreaMap="rendersAreaMap"></SectionDebug>
 </template>
 
 <style scoped>
-section {
+.main {
   position: relative;
   width: 100vw;
   display: flex;
   flex-direction: column;
 }
-section {
-  height: 500vh;
-}
-
-/* 
-.section1 {
-  position: relative;
+.loading {
+  pointer-events: none;
   width: 100vw;
   height: 100vh;
+  overflow: hidden;
 }
-.section2 {
-  position: relative;
-  width: 100vw;
-  height: 100vh;
-  margin-top: -20vh;
+.debug {
+  margin: 150vh 0;
+  background: #eee;
 }
-.section-myself {
-  position: fixed;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-} */
 </style>

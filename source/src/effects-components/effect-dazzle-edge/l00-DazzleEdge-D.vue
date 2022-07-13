@@ -2,11 +2,10 @@
 import { ref, reactive, onMounted, provide } from "vue";
 
 const props = defineProps<{
-  color?: string
-}>()
+  color?: string;
+}>();
 
-const color = ref(props.color ? props.color : "#ff1f71")
-
+const color = ref(props.color ? props.color : "#ff1f71");
 </script>
 
 <template>
@@ -30,14 +29,14 @@ const color = ref(props.color ? props.color : "#ff1f71")
   --height: 400px;
   --size-min: min(var(--width), var(--height));
   --border-width: 2px;
-  --border-radius: calc(var(--size-min)*0.06);
+  --border-radius: calc(var(--size-min) * 0.06);
   --dur: 0.5s;
   position: relative;
   width: var(--width);
   height: var(--height);
 }
 
-#panel>#effect {
+#panel > #effect {
   position: absolute;
   width: 100%;
   height: 100%;
@@ -50,8 +49,8 @@ const color = ref(props.color ? props.color : "#ff1f71")
   overflow: hidden;
 }
 
-#panel>#effect::after {
-  content: '';
+#panel > #effect::after {
+  content: "";
   position: absolute;
   left: var(--border-width);
   right: var(--border-width);
@@ -61,11 +60,11 @@ const color = ref(props.color ? props.color : "#ff1f71")
   background: #0c1538;
 }
 
-#panel>#effect::before {
-  content: '';
+#panel > #effect::before {
+  content: "";
   position: absolute;
-  width: calc(var(--size-min)/2);
-  height: calc(var(--size-min)*2);
+  width: calc(var(--size-min) / 2);
+  height: calc(var(--size-min) * 2);
   background: linear-gradient(#00ccff, #d400d4);
   animation: animate 2s linear infinite;
 }
@@ -88,6 +87,5 @@ const color = ref(props.color ? props.color : "#ff1f71")
   align-items: center;
   justify-content: center;
   color: #fff;
-  
 }
 </style>

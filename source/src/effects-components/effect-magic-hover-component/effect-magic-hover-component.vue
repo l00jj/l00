@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, reactive } from "vue";
 import ViewGroup from "@src/components/Projects/EffectsProjectView_Group.vue";
 import ViewItem from "@src/components/Projects/EffectsProjectView_Item.vue";
 
@@ -10,16 +11,28 @@ import ClaymorphismListA from "./l00-ClaymorphismList-A.vue";
 import MagicMenuB from "./l00-MagicMenu-B.vue";
 import SpreadMenuC from "./l00-SpreadMenu-C.vue";
 import MagicMenuC from "./l00-MagicMenu-C.vue";
+import SpreadMenuD from "./l00-SpreadMenu-D.vue";
+import MagicInputB from "./l00-MagicInput-B.vue";
+
+const vMagicInputB = ref("");
 </script>
 
 <template>
   <ViewGroup>
+    <ViewItem style="height: 90vh" name="effect-magic-hover-component-magic-input-b">
+      <MagicInputB v-model="vMagicInputB"></MagicInputB>
+    </ViewItem>
+
     <ViewItem style="height: 90vh" name="effect-magic-hover-component-claymorphism-list-a">
       <ClaymorphismListA></ClaymorphismListA>
     </ViewItem>
 
     <ViewItem style="height: 90vh" name="effect-magic-hover-component-spread-menu-c">
       <SpreadMenuC></SpreadMenuC>
+    </ViewItem>
+
+    <ViewItem style="height: 90vh" name="effect-magic-hover-component-spread-menu-d">
+      <SpreadMenuD></SpreadMenuD>
     </ViewItem>
 
     <ViewItem style="height: 85vh" name="effect-magic-hover-component-magic-menu-c">

@@ -3,7 +3,6 @@ import { reactive, ref, watchEffect, onMounted, onUnmounted } from "vue";
 import Experience from "@src/graphics-components/simple-3d-text/Experience/Experience";
 import Simple3DText from "@src/graphics-components/simple-3d-text/l00-Simple3DText.vue";
 //
-//const props = defineProps<{viewArea?: HTMLElement;}>();
 const componentOnMounted = (experience: Experience) => {
   // 暂停动画
   experience.isPlayAnimation = false;

@@ -47,7 +47,6 @@ import RenderViewHead from "./Section-3-RenderView-Head.vue";
   font-size: 1.5vh;
   font-weight: 900;
 }
-
 .content .important {
   color: #ffffff66;
 }
@@ -57,7 +56,7 @@ import RenderViewHead from "./Section-3-RenderView-Head.vue";
 }
 .content.copyright {
   bottom: 4vh;
-  left: 2vh;
+  right: 2vh;
   color: #ffffff22;
 }
 </style>

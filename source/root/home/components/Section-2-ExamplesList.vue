@@ -136,4 +136,17 @@ ul li {
     filter: grayscale(100%);
   }
 }
+
+/*小横屏*/
+@media (orientation: landscape) and (max-width: 1280px) {
+  ul {
+    padding: 3em 1.25vw;
+    gap: unset;
+  }
+  .card {
+    width: 30vw;
+    height: auto;
+    margin: 0 1.25vw 5vw;
+  }
+}
 </style>

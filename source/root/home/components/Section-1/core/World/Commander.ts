@@ -5,6 +5,7 @@ import gsap from "gsap";
 export class Commander {
     main: Main
     time: Time
+    sizes: Sizes
 
     // Debug
     //addDebug: AddDebug
@@ -12,6 +13,7 @@ export class Commander {
     constructor(main: Main) {
         this.main = main
         this.time = this.main.time
+        this.sizes = this.main.sizes
 
         //Debug
         // this.addDebug = this.main.debug.addFolder('Model')
@@ -35,10 +37,8 @@ export class Commander {
     progress2Position = new THREE.Vector3(0, 0.33, -3.3)
     progress2Target = new THREE.Vector3(0, 1.11, 0)
     progress3Rotates = [(150 + 360) * Math.PI / 180, (220 + 360) * Math.PI / 180]
-
-
     adjustParameters() {
-        const isPortrait = window.innerWidth <= 1024
+        const isPortrait = (this.sizes.width / this.sizes.height < 1) && window.innerWidth <= 1024
         const progress1Rotates = [150, 190]
         const progress1Position = isPortrait ? [0, 1.40, -2] : [0, 1.45, -1.5]
         const progress1Target = isPortrait ? [0, 1.40, 0] : [0, 1.45, 0]

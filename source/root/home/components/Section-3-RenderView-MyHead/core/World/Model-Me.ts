@@ -35,6 +35,7 @@ export default class Model {
         //matcap.encoding =THREE.LinearEncoding 
 
         material.matcap = matcap
+        material.side = THREE.DoubleSide
         material.needsUpdate = true
         this.material = material
 

@@ -71,6 +71,7 @@ onMounted(() => {
   height: 100%;
   padding: 0;
   margin: 0;
+  box-sizing: content-box;
   background: none;
 }
 .viewArea {

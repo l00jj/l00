@@ -74,14 +74,14 @@ const viewAreaList = (() => {
   const viewAreaList = reactive([new ViewArea(0), new ViewArea(2)]);
 
   const onResize = () => {
-    viewAreaList.forEach((viewArea,index) => {
+    viewAreaList.forEach((viewArea, index) => {
       viewArea.top = 0;
       for (let item = viewArea.el; item; item = item.offsetParent as HTMLElement) {
         viewArea.top += item.offsetTop;
       }
       viewArea.height = viewArea.el.offsetHeight;
       viewArea.bottom = viewArea.top + viewArea.el.offsetHeight;
-      if(index+1===viewAreaList.length)viewArea.bottom=Infinity
+      if (index + 1 === viewAreaList.length) viewArea.bottom = Infinity;
     });
   };
 
@@ -143,7 +143,7 @@ onMounted(() => {
           <div class="title"><span>野</span><span>码</span></div>
           <div class="top"><span>// 好学的一枚[野生]JS[码农]</span></div>
           <div class="bottom">
-            <span>&#60 Es6 Vue Threejs</span>
+            <span>&lt; Es6 Vue Threejs</span>
             <span>C4d Blender AE/></span>
           </div>
         </div>
@@ -180,9 +180,9 @@ onMounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #888888FF;
+  color: #888888ff;
   will-change: opacity, transform, filter;
-  transition:  1s;
+  transition: 1s;
 }
 </style>
 
@@ -251,7 +251,6 @@ onMounted(() => {
   font-weight: 900;
   white-space: nowrap;
 }
-
 .section2 .title span:nth-child(2) {
   margin-left: 150px;
 }
@@ -264,23 +263,21 @@ onMounted(() => {
   white-space: nowrap;
   transform: translate(245px, -200px);
 }
-
 .section2 .bottom {
   position: absolute;
   display: inline-flex;
-    flex-direction: row;
-    align-items: center;
+  flex-direction: row;
+  align-items: center;
   font-size: 30px;
   font-weight: 900;
   line-height: 30px;
   white-space: nowrap;
-  transform: translate(0px,200px);
+  transform: translate(0px, 200px);
 }
 .section2 .bottom span {
   display: flex;
   align-items: center;
 }
-
 .section2 .bottom span:nth-child(2) {
   margin-left: 150px;
 }
@@ -299,27 +296,23 @@ onMounted(() => {
 .fade-reverse-leave-active {
   transition: all 1s;
 }
-
 .fade-enter-from,
 .fade-reverse-leave-to {
   opacity: 0;
   filter: blur(5em);
   transform: translateY(30vh);
 }
-
 .fade-enter-to {
   opacity: 1;
   filter: blur(0px);
   transform: translateY(0vh);
 }
-
 .fade-leave-from,
 .fade-reverse-leave-from {
   opacity: 1;
   filter: blur(0px);
   transform: translateY(0vh);
 }
-
 .fade-leave-to,
 .fade-reverse-enter-from {
   opacity: 0;
@@ -331,7 +324,7 @@ onMounted(() => {
 <style scoped>
 @media all and (max-width: 1024px) {
   /* .section .viewarea .content {
-    color: red;
+    color:green;
   } */
   .section1 .content {
     transform: translateY(-15vh);
@@ -339,7 +332,6 @@ onMounted(() => {
   .section1 .content .title {
     position: absolute;
     font-size: 35vw;
-    font-weight: 900;
     white-space: nowrap;
   }
   .section1 .content .title span:nth-child(2) {
@@ -347,21 +339,18 @@ onMounted(() => {
   }
   .section1 .content .left {
     font-size: 5vw;
-    font-weight: 900;
     transform: translate(-4em, -4.5em);
   }
   .section1 .content .right {
     font-size: 5vw;
     transform: translate(5.5em, 4em);
   }
-
   .section2 .content {
     transform: translateY(-18vh);
   }
   .section2 .content .title {
     position: absolute;
     font-size: 42vw;
-    font-weight: 900;
     white-space: nowrap;
   }
   .section2 .content .title span:nth-child(2) {
@@ -369,95 +358,61 @@ onMounted(() => {
   }
   .section2 .content .top {
     font-size: 5vw;
-    font-weight: 900;
     transform: translate(1em, -5.5em);
-  }
-  .section2 .content .bottom {
-    font-size: 5vw;
-    transform: translate(-5.5em, 4em);
   }
   .section2 .content .bottom {
     font-size: 4vw;
     transform: translate(0em, 7em);
   }
-    .section2 .content .bottom span:nth-child(2) {
+  .section2 .content .bottom span:nth-child(2) {
     margin-left: 24vw;
   }
 }
 </style>
 
-<!-- 
 <style scoped>
-.section1 .content {
-  /* animation: fakeTopOut 2s ease-out infinite; */
-}
-@keyframes fakeTopOut {
-  0% {
-    opacity: 1;
-    filter: blur(0px);
-    transform: translateY(0vh);
+@media (orientation: landscape) and (max-height: 800px) {
+  /* .section .viewarea .content {
+    color:green;
+  } */
+  .section1 .content {
+    font-size: 3.75vh;
+    transform: translateY(0em);
   }
-  100% {
-    opacity: 0;
-    filter: blur(100px);
-    transform: translateY(-50vh);
+  .section1 .content .title {
+    font-size: 11.7em;
   }
-}
-.section2 .content {
-  /* animation: fakeBottomin 2s infinite; */
-  /* opacity: 0;
-  animation-delay: 0.5s; */
-}
-@keyframes fakeBottomin {
-  0% {
-    opacity: 0;
-    filter: blur(100px);
-    transform: translateY(50vh);
+  .section1 .content .title span:nth-child(2) {
+    margin-left: 0.38em;
   }
-  100% {
-    opacity: 1;
-    filter: blur(0px);
-    transform: translateY(0vh);
+  .section1 .content .left {
+    font-size: 1em;
+    transform: translate(-10.5em, -6.5em);
+  }
+  .section1 .content .right {
+    font-size: 1em;
+    transform: translate(11.5em, 5.5em);
+  }
+  .section2 .content {
+    font-size: 3.75vh;
+    transform: translateY(0em);
+  }
+  .section2 .content .title {
+    font-size: 12em;
+  }
+  .section2 .content .title span:nth-child(2) {
+    margin-left: 0.4em;
+  }
+  .section2 .content .top {
+    font-size: 1em;
+    transform: translate(1em, -8.3em);
+  }
+  .section2 .content .bottom {
+    font-size: 1em;
+    transform: translate(0em, 7em);
+  }
+  .section2 .content .bottom span:nth-child(2) {
+    margin-left: 5em;
   }
 }
 </style>
-
-<style scoped>
-.fade-enter-active {
-  animation: fade-in 2s;
-}
-.fade-leave-active {
-  animation: fade-out 2s;
-}
-.fade-reverse-enter-active {
-  animation: fade-out 2s reverse;
-}
-.fade-reverse-leave-active {
-  animation: fade-in 2s reverse;
-}
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-    filter: blur(100px);
-    transform: translateY(50vh);
-  }
-  100% {
-    opacity: 1;
-    filter: blur(0px);
-    transform: translateY(0vh);
-  }
-}
-@keyframes fade-out {
-  0% {
-    opacity: 1;
-    filter: blur(0px);
-    transform: translateY(0vh);
-  }
-  100% {
-    opacity: 0;
-    filter: blur(100px);
-    transform: translateY(-50vh);
-  }
-} 
-</style>
--->

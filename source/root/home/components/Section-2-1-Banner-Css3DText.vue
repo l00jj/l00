@@ -44,6 +44,7 @@ onMounted(async () => {
   left: 0;
   width: 100%;
   height: 100%;
+  box-sizing: content-box;
   padding: 50vh 0 30vh 0;
   margin: -50vh 0 -30vh 0;
   background: none;

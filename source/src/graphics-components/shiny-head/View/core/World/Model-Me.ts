@@ -36,6 +36,7 @@ export default class Model {
 
         material.matcap = matcap
         material.needsUpdate = true
+        material.side = THREE.DoubleSide
         this.material = material
 
         // console.log(matcap)

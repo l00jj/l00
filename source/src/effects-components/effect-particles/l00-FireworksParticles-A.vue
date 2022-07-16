@@ -1,16 +1,9 @@
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
+import { ref, reactive, computed, getCurrentScope, onMounted } from "vue";
 import { froundFix } from "@src/utils/Tools";
 
 //const props = defineProps<{}>();
-
-const parameter = {
-  backgroundColor: `#000`,
-};
-
-const mainStyle = {
-  backgroundColor: `${parameter.backgroundColor}`,
-};
+const container = ref<HTMLElement>();
 
 class Particle {
   id = Symbol();
@@ -21,28 +14,33 @@ class Particle {
     height: "",
     "--rotate": "0deg",
   };
-  constructor(x: number, y: number) {
-    this.disappearDelay(2);
-    this.style.top = `${y}px`;
-    this.style.left = `${x}px`;
+  constructor(x: number, y: number, containerEl: HTMLElement) {
+    let cssText = "";
+    const element = document.createElement("span");
+    element.classList.add("particle");
+    cssText += `top:${y}px;`;
+    cssText += `left:${x}px;`;
     const randomSize = Math.random() * 8;
-    this.style.width = `${2 + randomSize}px`;
-    this.style.height = `${2 + randomSize}px`;
+    cssText += `width:${2 + randomSize}px;`;
+    cssText += `height:${2 + randomSize}px;`;
     const rotateDeg = Math.random() * 360;
-    this.style["--rotate"] = `${rotateDeg}deg`;
-  }
-  disappearDelay(s: number) {
-    setTimeout(() => list.delete(this), s * 1000);
+    cssText += `--rotate:${rotateDeg}deg;`;
+    element.style.cssText = cssText;
+    containerEl.appendChild(element);
+    //
+    setTimeout(() => element.remove(), 2 * 1000);
   }
 }
 
-const list = reactive(new Set<Particle>());
-
 const onMove = (x: number, y: number) => {
-  //console.log(x, y);
-  list.add(new Particle(x, y));
+  createParticles(x, y);
 };
-console.log(list);
+
+const createParticles = (x: number, y: number) => {
+  const containerEl = container.value as HTMLElement;
+  new Particle(x, y, containerEl);
+};
+
 const onMousemove = (event: MouseEvent) => {
   onMove(event.offsetX, event.offsetY);
 };
@@ -50,10 +48,10 @@ const onMousemove = (event: MouseEvent) => {
 
 <template>
   <section class="background">
-    <div class="container" @mousemove="onMousemove">
-      <TransitionGroup name="fade">
+    <div class="container" @mousemove="onMousemove" ref="container">
+      <!--       <TransitionGroup name="fade">
         <span class="particle" v-for="item in list" :style="item.style" :key="item.id"></span>
-      </TransitionGroup>
+      </TransitionGroup> -->
     </div>
   </section>
 </template>
@@ -89,7 +87,7 @@ section.background {
 </style>
 
 <style scoped>
-.particle {
+.container :deep(.particle) {
   pointer-events: none;
   position: absolute;
   width: 10px;
@@ -98,7 +96,7 @@ section.background {
   background: red;
   transform: translate(-50%, -50%) rotate(var(--rotate));
 }
-.particle::before {
+.container :deep(.particle::before) {
   content: "";
   position: absolute;
   width: 100%;

@@ -35,6 +35,7 @@ const commonConfig: UserConfigExport = {
         'effects': resolve(__dirname, 'root/effects/index.html'),
         'blobs': resolve(__dirname, 'root/blobs/index.html'),
         'metaverse': resolve(__dirname, 'root/metaverse/index.html'),
+        'particles': resolve(__dirname, 'root/particles/index.html'),
       },
 
       output: {//输出资源整合到对应文件夹

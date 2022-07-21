@@ -14,14 +14,13 @@ import Cube3DD from "./l00-3DCube-D.vue";
 
 <template>
   <ViewGroup>
-      <ViewItem style="height: 80vh" name="effect-3d-cube-d">
+    <ViewItem style="height: 80vh" name="effect-3d-cube-d">
       <Cube3DD></Cube3DD>
-    </ViewItem><!-- 
+    </ViewItem>
+
     <ViewItem style="height: 80vh" name="effect-3d-cube-b">
       <Cube3DB></Cube3DB>
     </ViewItem>
-
-  
 
     <ViewItem style="height: 80vh" name="effect-3d-cube-a">
       <Cube3DA></Cube3DA>
@@ -45,7 +44,7 @@ import Cube3DD from "./l00-3DCube-D.vue";
 
     <ViewItem style="height: 95vh" name="effect-3d-cube-cage-a">
       <Cube3DCageA></Cube3DCageA>
-    </ViewItem> -->
+    </ViewItem>
   </ViewGroup>
 </template>
 

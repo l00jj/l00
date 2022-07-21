@@ -49,7 +49,7 @@ const progress = computed(() => `${props.progress * 100}%`);
 
 .progress {
   position: absolute;
-  width: 20%;
+  width: 10%;
   height: var(--progresHeight);
   display: inline-flex;
   justify-content: center;

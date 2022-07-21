@@ -4,7 +4,7 @@ export default {
   coverUrl,
   "title": "动态组件",
   "tags": ["magic", "input"],
-  //"urls": ["https://www.youtube.com/watch?v=pubrK_AmqRg"],
+  //"urls": ["https://www.youtube.com/watch?v=_UUyhW2EgRI"],
   "date": "2022.06.29 07:00:00",
   "vue": () => import('@src/effects-components/effect-magic-hover-component/effect-magic-hover-component.vue')
 };

@@ -18,7 +18,7 @@
 .preview {
   position: relative;
   width: 80vw;
-  height: 60vh;
+  height: 70vh;
   border: 3px solid transparent;
   box-shadow: 0 1em 3em rgba(0, 0, 0, 0.1);
   transition: 0.5s;

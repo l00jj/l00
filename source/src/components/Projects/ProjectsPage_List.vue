@@ -33,19 +33,23 @@ ul li {
   position: relative;
   width: 360px;
   margin: 0 1.5em 3em;
-  border-radius: 10px;
-  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   list-style: none;
-  box-shadow: 0 10px 60px #00000033, 0 10px 30px #00000033, 0 5px 10px #00000033;
-  transition: 380ms;
-  filter: grayscale(100%);
 }
-ul li:hover {
-  filter: grayscale(0%);
-  transform: scale(110%, 110%);
-}
+
 ul li a {
   display: block;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 60px #00000033, 0 10px 30px #00000033, 0 5px 10px #00000033;
+  filter: grayscale(100%);
+  transition: 380ms;
+}
+ul li:hover a {
+  filter: grayscale(0%);
+  transform: scale(110%, 110%);
 }
 img {
   display: block;
@@ -60,12 +64,6 @@ img {
   ul li {
     width: 45%;
     margin: 0 2.5% 8%;
-    border-radius: 10px;
-    overflow: hidden;
-    list-style: none;
-    box-shadow: 0 10px 60px #00000033, 0 10px 30px #00000033, 0 5px 10px #00000033;
-    transition: 380ms;
-    filter: grayscale(100%);
   }
 }
 </style>

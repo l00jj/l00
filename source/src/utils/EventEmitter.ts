@@ -1,7 +1,9 @@
 interface EmitterOption {
   isOnce: boolean
 }
-
+/**
+ * 继续改进方向可以做一个Set外壳，只要单个事件，单独给一个属性，不需要走for of
+ */
 class Emitter {
   function: Function
   isOnce: boolean
@@ -38,6 +40,19 @@ export class EventEmitter {
     } else {
       return false;
     }
+  }
+
+  has(_event_: string | symbol) {
+    // Errors
+    if (typeof _event_ === "symbol" || (typeof _event_ === 'string' && _event_ !== '')) {
+      // 获取事件触发列表
+      let emittersSet = this.__emitters__.get(_event_)
+      // 判断是否存在事件列表
+      if (emittersSet) {
+        return emittersSet.size !== 0
+      }
+    }
+    return false;
   }
 
   once(_event_: string | symbol, _callback_: Function) {
@@ -84,15 +99,15 @@ export class EventEmitter {
     return true
   }
 
-  async emit(_event_: string | symbol, ..._args_: any[]) {
+  emit(_event_: string | symbol, ..._args_: any[]) {
     // 获取事件触发列表
     const emittersSet = this.__emitters__.get(_event_)
     if (!emittersSet) return;
     // 逐个触发
     for (let emitter of emittersSet) {
-      // 阻塞式触发
+      // 非阻塞式触发
       try {
-        await emitter.function.apply(undefined, _args_)
+        emitter.function.apply(undefined, _args_)
       } catch (e) {
         console.error(e)
       }

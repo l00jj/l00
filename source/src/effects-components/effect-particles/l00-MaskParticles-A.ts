@@ -385,6 +385,7 @@ class World {
         const { params, sizes } = this.main
         const number = params.particles.baseNumber.value * (params.particles.baseNumber.density.enable ?
             Math.round(sizes.width * sizes.height / (params.particles.baseNumber.density.value ** 2)) : 1)
+            console.log(sizes.width ,sizes.height,params.particles.baseNumber.density.value, Math.round(sizes.width * sizes.height / (params.particles.baseNumber.density.value ** 2)) )
         for (let i = 0; i < number; i++) {
             const particle = new Particle(this.main, 'base')
             this.particlesList.add(particle)
@@ -486,10 +487,10 @@ class Main extends EventEmitter {
         },
         "particles": {
             "baseNumber": {
-                "value": 500,
+                "value": 7,
                 "density": {
                     "enable": true,
-                    "value": 800,// 面积
+                    "value": 100,// 面积
                 }
             },
             "color": {

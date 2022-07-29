@@ -34,7 +34,7 @@
     "root/**/*.ts",
     "root/**/*.d.ts",
     "root/**/*.tsx",
-    "root/**/*.vue"
+    "root/**/*.vue",
   ],
   "references": [
     {

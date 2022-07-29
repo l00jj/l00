@@ -8,10 +8,16 @@ import NeonButtonB from "./l00-NeonButton-B.vue";
 import NeonTextA from "./l00-NeonText-A.vue";
 import NeonTextB from "./l00-NeonText-B.vue";
 import NeonTextC from "./l00-NeonText-C.vue";
+import NeonTextD from "./l00-NeonText-D.vue";
 </script>
 
 <template>
   <ViewGroup>
+
+    <ViewItem style="height: 80vh" name="effect-neon-text-d">
+      <NeonTextD></NeonTextD>
+    </ViewItem>
+
     <ViewItem style="height: 80vh" name="effect-neon-button-b">
       <NeonButtonB></NeonButtonB>
     </ViewItem>

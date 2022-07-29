@@ -1,0 +1,16 @@
+<script setup lang="ts">
+import ViewGroup from "@src/components/Projects/EffectsProjectView_Group.vue";
+import ViewItem from "@src/components/Projects/EffectsProjectView_Item.vue";
+
+import Layout from "./l00-Layout-A.vue";
+</script>
+
+<template>
+  <ViewGroup>
+    <ViewItem style="height: 100vh" name="animation-layout-a">
+      <Layout></Layout>
+    </ViewItem>
+  </ViewGroup>
+</template>
+
+<style scoped></style>

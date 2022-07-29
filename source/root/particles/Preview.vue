@@ -19,11 +19,20 @@
   position: relative;
   width: 80vw;
   height: 70vh;
-  border: 3px solid transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   box-shadow: 0 1em 3em rgba(0, 0, 0, 0.1);
-  transition: 0.5s;
 }
-.preview:hover {
-  border: 3px solid red;
+.preview::before {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid transparent;
+  transition: 0.3s;
+}
+.preview:hover::before {
+  border: 3px solid black;
 }
 </style>

@@ -31,6 +31,7 @@ const commonConfig: UserConfigExport = {
 
       input: {
         'index': resolve(__dirname, 'root/index.html'),
+        'test': resolve(__dirname, 'root/test/index.html'),
         'about': resolve(__dirname, 'root/about/index.html'),
         'effects': resolve(__dirname, 'root/effects/index.html'),
         'blobs': resolve(__dirname, 'root/blobs/index.html'),

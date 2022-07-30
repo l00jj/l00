@@ -2,6 +2,7 @@ import * as THREE from "THREE";
 import { EventEmitter } from "@src/utils/EventEmitter"
 import { Stats } from '@src/utils/Stats'
 import { DatGui } from "@src/utils/DatGui";
+import { Z_UNKNOWN } from "zlib";
 
 
 
@@ -322,7 +323,9 @@ class Renderer {
         ctx.fillRect(0, 0, sizes.width, sizes.height)
         ctx.globalAlpha = 0.2
         world.render() */
-        jumpCode(this.main)
+
+        //jumpCode(this.main)
+        jumpCode2(this.main)
     }
 }
 
@@ -373,6 +376,8 @@ class Main extends EventEmitter {
     viewContainerDom: HTMLElement
     // 渲染器调整环节
     renderer: Renderer
+    // 纹理资源
+    textures: Map<string | symbol, TextureSource> = new Map()
     // 渲染空间流程
     world: World
     // 画布Dom
@@ -540,33 +545,11 @@ declare function initShaders(gl: WebGLRenderingContext, vshader: string, fshader
 // Vertex shader program
 var VSHADER_SOURCE = `attribute vec4 a_Position;
 attribute vec2 a_TexCoord;
-uniform mat4 u_MvpMatrix;
+uniform mat4 u_ProjectMatrix;
 varying vec2 v_TexCoord;
 void main() {
-  gl_Position = u_MvpMatrix * a_Position;
+  gl_Position = u_ProjectMatrix * a_Position;
   v_TexCoord = a_TexCoord;
-}`;
-
-const planeBGMaterial_Vertex_Source = `
-attribute vec4 a_Position;
-attribute vec2 a_TexCoord;
-uniform mat4 u_MvpMatrix;
-varying vec2 v_TexCoord;
-void main() {
-    gl_Position = u_MvpMatrix * a_Position;
-  v_TexCoord = a_TexCoord;
-}`;
-
-// Fragment shader program
-var planeBGMaterial_Fragment_Source = `
-#ifdef GL_ES
-precision mediump float;
-#endif
-
-uniform sampler2D u_Sampler;
-varying vec2 v_TexCoord;
-void main() {
-  gl_FragColor = texture2D(u_Sampler, v_TexCoord);
 }`;
 
 /* var FSHADER_SOURCE = `
@@ -579,6 +562,7 @@ varying vec2 v_TexCoord;
 void main() {
   gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }`; */
+
 var FSHADER_SOURCE = `
 #ifdef GL_ES
 precision mediump float;
@@ -591,24 +575,87 @@ void main() {
 }`;
 
 
-class ProgramModule {
-    program?: WebGLProgram
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+type ShaderProgramVariablesInputTypes = { attributes?: string[], uniforms?: string[], varyings?: string[] }
+
+class ShaderProgram {
+    variables: { 'attributes'?: any, 'uniforms'?: any, 'varyings'?: any } = {}
     vertexShaderSource: string
     fragmentShaderSource: string
-    constructor(vertexShaderSource: string, fragmentShaderSource: string) {
+    program?: WebGLProgram
+    init?: (gl: WebGLRenderingContext) => void
+    constructor(variables: ShaderProgramVariablesInputTypes, vertexShaderSource: string, fragmentShaderSource: string) {
         this.vertexShaderSource = vertexShaderSource
         this.fragmentShaderSource = fragmentShaderSource
-    }
-    init(gl: WebGLRenderingContext) {
-        const program = ProgramModule.createProgram(gl, this.vertexShaderSource, this.fragmentShaderSource);
-        if (!program) throw new Error('Failed to create program')
-        this.program = program
+        // 生成 Program 暂不考虑更新 init单次使用
+        this.init = (gl: WebGLRenderingContext) => {
+            ShaderProgram.createShader(gl, this, variables)
+            Reflect.deleteProperty(this, 'init');
+        }
     }
 
+    setTexture() {
+
+    }
+
+    static getVariableLocation = {
+        "attributes": (gl: WebGLRenderingContext, program: WebGLProgram, name: string) => gl.getAttribLocation(program, name),
+        "uniforms": (gl: WebGLRenderingContext, program: WebGLProgram, name: string) => gl.getUniformLocation(program, name),
+    }
+    // 生成 Program 和 变量接口 ，暂不考虑更新 init单次使用
+    static createShader(gl: WebGLRenderingContext, shaderProgram: ShaderProgram, variables: ShaderProgramVariablesInputTypes) {
+        // 生成 Program
+        const program = ShaderProgram.createProgram(gl, shaderProgram.vertexShaderSource, shaderProgram.fragmentShaderSource);
+        if (!program) throw new Error('Failed to create program')
+        shaderProgram.program = program;
+        // 生成接口
+
+        Object.entries(variables).forEach(([variableName, variable]) => {
+            const getVariableLocation =
+                variableName === 'attributes' ? ShaderProgram.getVariableLocation.attributes :
+                    variableName === 'uniforms' ? ShaderProgram.getVariableLocation.uniforms :
+                        null
+            const variableItem =
+                variableName === 'attributes' ? shaderProgram.variables.attributes ? shaderProgram.variables.attributes : (shaderProgram.variables.attributes = {}) :
+                    variableName === 'uniforms' ? shaderProgram.variables.uniforms ? shaderProgram.variables.uniforms : (shaderProgram.variables.uniforms = {}) :
+                        {}
+            getVariableLocation && variable.forEach(name => {
+                variableItem[name] = getVariableLocation(gl, program, name);
+            })
+        })
+    }
+
+    // 生成 Program
     static createProgram(gl: WebGLRenderingContext, vertexShaderSource: string, fragmentShaderSource: string) {
         // Create shader object
-        const vertexShader = ProgramModule.loadShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-        const fragmentShader = ProgramModule.loadShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+        const vertexShader = ShaderProgram.loadShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
+        const fragmentShader = ShaderProgram.loadShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
         if (!vertexShader || !fragmentShader) return null;
         // Create a program object
         const program = gl.createProgram();
@@ -653,22 +700,462 @@ class ProgramModule {
         }
         return shader;
     }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class TextureSource {
+    static types = {
+        image: Symbol()
+    }
+    type?: symbol
+    texture?: WebGLTexture
+
+    constructor() { }
+
+    image?: HTMLImageElement
+    setImage(image: HTMLImageElement) {
+        this.type = TextureSource.types.image
+        this.image = image
+    }
+
+    static setImageTexture(gl: WebGLRenderingContext, textureSource: TextureSource, image: HTMLImageElement) {
+        const texture = gl.createTexture();
+        if (!texture) throw new Error('can not WebGLRenderingContextBase.createTexture()')
+        // 图像的第一个像素是左上方开始读取，而WEBGL中纹理用迪尔卡坐标的第一象限，是左下方第一个开个写入，所以需要翻转Y轴
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+        // 绑定纹理到 TEXTURE_2D
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        // 设置图片缩放时的处理情况
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        // 零号纹理
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+        // Unbind the texture object
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        // 缓存
+        textureSource.texture = texture
+        return true
+    }
+
+    update(gl: WebGLRenderingContext) {
+        if (this.type === TextureSource.types.image && this.image) {
+            return TextureSource.setImageTexture(gl, this, this.image)
+        }
+        return false
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 参考源码: https://github.com/mrdoob/three.js/blob/dev/src/core/Object3D.js
+class Object3D {
+    static DefaultUp = new THREE.Vector3(0, 1, 0);
+    static DraftMatrix = new THREE.Matrix4();
+    quaternion = new THREE.Matrix4(); // 参考源码推测用于视距矩阵
+    position = new THREE.Vector3(0, 0, 0);
+    up = Object3D.DefaultUp.clone();
+    constructor() { }
+
+}
+
+// 参考 Camera 源码：https://github.com/mrdoob/three.js/blob/dev/src/cameras/Camera.js
+class Camera extends Object3D {
+    projectionMatrix = new THREE.Matrix4();
+    constructor() {
+        super()
+    }
+}
+
+// 参考图示：https://www.likecs.com/show-203963589.html
+// API： https://threejs.org/docs/index.html#api/en/math/Matrix4.lookAt
+// 参考 OrthographicCamera 源码：https://github.com/mrdoob/three.js/blob/dev/src/cameras/OrthographicCamera.js
+class OrthographicCamera extends Camera {
+    left = -1
+    right = 1
+    top = 1
+    bottom = -1
+    near = 0.1
+    far = 2000
+    constructor(left = - 1, right = 1, top = 1, bottom = - 1, near = 0.1, far = 2000) {
+        super()
+        this.left = left
+        this.right = right
+        this.top = top
+        this.bottom = bottom
+        this.near = near
+        this.far = far
+        // 设置视觉矩阵换算
+        this.projectionMatrix.makeOrthographic(left, right, top, bottom, near, far)
+    }
+
+    // 暂时为了方便，直接整合视距矩阵
+    lookAt(x: number, y: number, z: number) {
+        // 重置草稿 并 设置视距方向
+        const lookAt = Object3D.DraftMatrix.identity()
+            .lookAt(this.position, new THREE.Vector3(x, y, z), this.up)
+        this.projectionMatrix.premultiply(lookAt)
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+class AttributeBuffer {
+    static ARRAY_BUFFER = Symbol()
+    static ELEMENT_ARRAY_BUFFER = Symbol()
+    static FLOAT = Symbol()
+    static UNSIGNED_BYTE = Symbol()
+
+    buffer?: WebGLBuffer
+    bufferTypeID: Symbol//内部核对
+    bufferType!: number//对应gl的内容
+
+    data!: Float32Array | Uint8Array
+    dataNumber!: number
+    dataTypeID!: Symbol  //内部核对
+    dataType!: number //对应gl的内容
+
+    constructor(bufferTypeID: Symbol) {
+        this.bufferTypeID = bufferTypeID
+    }
+
+    setData(data: Float32Array | Uint8Array, dataNumber: number, dataTypeID: Symbol) {
+        this.data = data
+        this.dataNumber = dataNumber
+        this.dataTypeID = dataTypeID
+    }
+
+    update(gl: WebGLRenderingContext) {
+        this.bufferType = this.bufferTypeID === AttributeBuffer.ARRAY_BUFFER ? gl.ARRAY_BUFFER :
+            this.bufferTypeID === AttributeBuffer.ELEMENT_ARRAY_BUFFER ? gl.ELEMENT_ARRAY_BUFFER :
+                NaN;
+        this.dataType = this.dataTypeID === AttributeBuffer.FLOAT ? gl.FLOAT :
+            this.dataTypeID === AttributeBuffer.UNSIGNED_BYTE ? gl.UNSIGNED_BYTE :
+                NaN;
+        if (Number.isNaN(this.bufferTypeID)) throw new Error('Unknown Buffer type');
+        if (Number.isNaN(this.dataTypeID)) throw new Error('Unknown Data type');
+
+        // Write vertex information to buffer object
+        AttributeBuffer.createBuffer(this, gl, this.bufferType, this.data)
+    }
+
+    // 创建值的缓存
+    static createBuffer(attributeBuffer: AttributeBuffer, gl: WebGLRenderingContext, bufferType: number, data: Float32Array | Uint8Array) {
+        // Create a buffer object
+        const buffer = gl.createBuffer();
+        if (!buffer) throw new Error('Failed to create the buffer object');
+
+        // Write date into the buffer object
+        gl.bindBuffer(bufferType, buffer);
+        gl.bufferData(bufferType, data, gl.STATIC_DRAW);
+
+        // Store the necessary information to assign the object to the attribute variable later
+        attributeBuffer.buffer = buffer
+    }
+
+}
+
+class Mesh {
+    constructor() {
+
+    }
+}
+
+class PlaneMesh extends Mesh {
+    vertexsBuffer: AttributeBuffer
+    texCoordsBuffer: AttributeBuffer
+    indicesBuffer: AttributeBuffer
+    constructor(width: number, height: number, length: number) {
+        super()
+        // Vertex coordinates
+        //  v1-------v0
+        //  |    ^    | 
+        //  |    *  > |
+        //  |         |
+        //  v2-------v3
+        const vertices = new Float32Array([
+            width / 2, height / 2, length, width / -2, height / 2, length, width / -2, height / -2, length, width / 2, height / -2, length   // v0-v1-v2-v3
+        ]);
+        this.vertexsBuffer = new AttributeBuffer(AttributeBuffer.ARRAY_BUFFER)
+        this.vertexsBuffer.setData(vertices, 3, AttributeBuffer.FLOAT)
+
+        // Texture coordinates
+        //   v1-------v0
+        //   |         | 
+        //   |         |
+        //   |         |
+        // ^ v2-------v3
+        // * > 
+        const texCoords = new Float32Array([1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]);
+        this.texCoordsBuffer = new AttributeBuffer(AttributeBuffer.ARRAY_BUFFER)
+        this.texCoordsBuffer.setData(texCoords, 2, AttributeBuffer.FLOAT)
+
+        // Indices of the vertices
+        const indices = new Uint8Array([0, 1, 2, 0, 2, 3]);
+        this.indicesBuffer = new AttributeBuffer(AttributeBuffer.ELEMENT_ARRAY_BUFFER)
+        this.indicesBuffer.setData(indices, 0, AttributeBuffer.UNSIGNED_BYTE)
+
+        // 等待更新
+        this.isNeedUpdata = true
+    }
+
+    isNeedUpdata = false
+    update(gl: WebGLRenderingContext) {
+        if (!this.isNeedUpdata) return;
+
+        this.vertexsBuffer.update(gl)
+        this.texCoordsBuffer.update(gl)
+        this.indicesBuffer.update(gl)
+
+        // Unbind the buffer object
+        gl.bindBuffer(gl.ARRAY_BUFFER, null);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+
+        // 锁上
+        this.isNeedUpdata = false
+    }
 
 }
 
 
-class ShaderMaterial {
-    variables: { attributes?: any, uniforms?: any, varyings?: any }
-    programModule: ProgramModule
-    constructor(variables: { attributes?: any, uniforms?: any, varyings?: any }, vertexShaderSource: string, fragmentShaderSource: string) {
-        this.variables = variables
-        this.programModule = new ProgramModule(vertexShaderSource, fragmentShaderSource)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const planeShader_Vertex_Source = `
+attribute vec4 a_Position;
+attribute vec2 a_TexCoord;
+uniform mat4 u_ProjectMatrix;
+varying vec2 v_TexCoord;
+void main() {
+  gl_Position = u_ProjectMatrix * a_Position;
+  // gl_Position = vec4(1.0, 1.0, 1.0, 1.0) * a_Position;
+  //gl_Position = a_Position;
+  // gl_Position = a_Position;
+  v_TexCoord = a_TexCoord;
+}`;
+
+// Fragment shader program
+var planeShader_Fragment_Source = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+uniform sampler2D u_Sampler;
+varying vec2 v_TexCoord;
+void main() {
+  gl_FragColor = texture2D(u_Sampler, v_TexCoord);
+}`;
+
+
+
+function jumpCode2(main: Main) {
+    const { gl, sizes, world } = main
+    // 生成着色器
+    const shaderProgram = new ShaderProgram(
+        {
+            attributes: ["a_Position", "a_TexCoord"],
+            uniforms: ["u_ProjectMatrix", "u_Sampler"],
+        },
+        planeShader_Vertex_Source,
+        planeShader_Fragment_Source
+    )
+    shaderProgram.init && shaderProgram.init(gl);
+    if (!shaderProgram.program) throw new Error('Shader Program Create Fail')
+    console.log(shaderProgram)
+
+
+
+    // 生成图片纹理
+    const ImgTexture = new TextureSource()
+    if (world.background.image) ImgTexture.setImage(world.background.image);
+    ImgTexture.update(gl)
+
+
+    // 底板图形
+    var planeBG = new PlaneMesh(sizes.width, sizes.height, 0);
+    planeBG.update(gl)
+
+    // 摄像机
+    const mainCamera = new OrthographicCamera(-sizes.width / 2, sizes.width / 2, sizes.height / 2, -sizes.height / 2, -100.0, 100.0)
+    mainCamera.position.set(0, 0, 100)
+    mainCamera.position.set(0, 0, 0)
+
+
+    /**
+     *  ----- 渲染环节 ------
+     */
+    gl.clearColor(1.0, 0.0, 0.0, 1.0); // Set clear color (the color is slightly changed)
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);  // Clear FBO
+
+    // 使用着色器
+    gl.useProgram(shaderProgram.program)
+
+    // 设置视觉范围
+    // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/viewport
+    gl.viewport(0, 0, sizes.width, sizes.height);
+
+    // 传入参数
+    gl.uniformMatrix4fv(shaderProgram.variables.uniforms.u_ProjectMatrix, false, mainCamera.projectionMatrix.elements);
+
+    // Assign the buffer objects and enable the assignment
+    initAttributeVariable(gl, shaderProgram.variables.attributes.a_Position, planeBG.vertexsBuffer);    // Vertex coordinates
+    initAttributeVariable(gl, shaderProgram.variables.attributes.a_TexCoord, planeBG.texCoordsBuffer);  // Texture coordinates
+    gl.uniform1i(shaderProgram.variables.uniforms.u_Sampler, 0);
+
+    // Bind the texture object to the target
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, ImgTexture.texture!);
+
+    // Draw
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planeBG.indicesBuffer.buffer!);
+    gl.drawElements(gl.TRIANGLES, planeBG.indicesBuffer.data.length, planeBG.indicesBuffer.dataType, 0);
+
+    function initAttributeVariable(gl: WebGLRenderingContext, a_attribute: number, attributeBuffer: AttributeBuffer) {
+        gl.bindBuffer(gl.ARRAY_BUFFER, attributeBuffer.buffer!);
+        gl.vertexAttribPointer(a_attribute, attributeBuffer.dataNumber, attributeBuffer.dataType, false, 0, 0);
+        gl.enableVertexAttribArray(a_attribute);
     }
 
-    init(gl: WebGLRenderingContext) {
-        this.programModule.init(gl)
-    }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 function jumpCode(main: Main) {
@@ -681,35 +1168,11 @@ function jumpCode(main: Main) {
         return;
     }
 
-    const planeBGMaterial = new ShaderMaterial(
-        {
-            attributes: {
-                "a_Position": { value: new THREE.Vector2(0, 0) },
-                "a_TexCoord": { value: [] },
-            },
-            uniforms: {
-                "u_MvpMatrix": { value: new THREE.Matrix4() },
-            }
-        },
-        planeBGMaterial_Vertex_Source,
-        planeBGMaterial_Fragment_Source
-    )
-
-
-    planeBGMaterial.init(gl)
-
-
-    
-    console.log(planeBGMaterial)
-
-
     var program = (gl as any).program; // Get program object
     program.a_Position = gl.getAttribLocation(program, 'a_Position');
     program.a_TexCoord = gl.getAttribLocation(program, 'a_TexCoord');
-    program.u_MvpMatrix = gl.getUniformLocation(program, 'u_MvpMatrix');
+    program.u_ProjectMatrix = gl.getUniformLocation(program, 'u_ProjectMatrix');
     program.u_Black = gl.getUniformLocation(program, 'u_Black');
-
-
 
     var texture = gl.createTexture();   // Create a texture object
     if (!texture) {
@@ -723,7 +1186,6 @@ function jumpCode(main: Main) {
         console.log('Failed to get the storage location of u_Sampler');
         return null;
     }
-
 
     // Register the event handler to be called when image loading is completed
 
@@ -788,12 +1250,12 @@ function jumpCode(main: Main) {
 
 
     // 生成图形
-    var planeBG = new PlaneMesh(main, 20, 20, 0);
+    //var planeBG = new PlaneMesh(main, 20, 20, 0);
 
 
 
 
-    // Enable depth test
+    // Enable length test
     gl.enable(gl.DEPTH_TEST);
     // 开启双面面渲染
     //  gl.enable(gl.CULL_FACE);
@@ -809,7 +1271,7 @@ function jumpCode(main: Main) {
     var viewProjMatrix = new THREE.Matrix4();
     viewProjMatrix.makeOrthographic(-10, 10, -10, 10, -10000.0, 10000.0);
 
-    console.log(planeBG, viewProjMatrix)
+    //console.log(planeBG, viewProjMatrix)
     //_draw_(gl, canvas, fbo, fbo1, fbo2, plane, cube, _planeBG_, _planeBlack_, currentAngle, texture, viewProjMatrix, viewProjMatrixFBO);
     /* 
         
@@ -854,18 +1316,18 @@ function jumpCode(main: Main) {
             0, 0, 10, 0,
             0, 0, 0, 10,
         ]
-    //console.log(gl.program.u_MvpMatrix)
-    //gl.uniformMatrix4fv(gl.program.u_MvpMatrix, false, new Float32Array(tt) );
-    
-    gl.uniformMatrix4fv((gl as any).program .u_MvpMatrix, false, new Float32Array(g_mvpMatrix.elements));
+    //console.log(gl.program.u_ProjectMatrix)
+    //gl.uniformMatrix4fv(gl.program.u_ProjectMatrix, false, new Float32Array(tt) );
+
+    gl.uniformMatrix4fv((gl as any).program.u_ProjectMatrix, false, new Float32Array(g_mvpMatrix.elements));
 
 
 
     /*   // _drawTexturedObject_(gl, program, cube, _planeBG_, _planeBlack_, texture);
       function _drawTexturedObject_(gl, program, cube, _planeBG_, _planeBlack_, texture) {
           // Assign the buffer objects and enable the assignment
-          initAttributeVariable(gl, program.a_Position, _planeBG_.vertexBuffer);    // Vertex coordinates
-          initAttributeVariable(gl, program.a_TexCoord, _planeBG_.texCoordBuffer);  // Texture coordinates
+          initAttributeVariable(gl, program.a_Position, _planeBG_.vertexsBuffer);    // Vertex coordinates
+          initAttributeVariable(gl, program.a_TexCoord, _planeBG_.texCoordsBuffer);  // Texture coordinates
           gl.uniform1f(gl.program.u_Black, 0.0);
         
           // Bind the texture object to the target
@@ -873,14 +1335,14 @@ function jumpCode(main: Main) {
           gl.bindTexture(gl.TEXTURE_2D, texture);
         
           // Draw
-          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _planeBG_.indexBuffer);
-          gl.drawElements(gl.TRIANGLES, _planeBG_.numIndices, _planeBG_.indexBuffer.type, 0);
+          gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _planeBG_.indicesBuffer);
+          gl.drawElements(gl.TRIANGLES, _planeBG_.numIndices, _planeBG_.indicesBuffer.type, 0);
         
           if (t > 90) {
         
             // Assign the buffer objects and enable the assignment
-            initAttributeVariable(gl, program.a_Position, _planeBlack_.vertexBuffer);    // Vertex coordinates
-            initAttributeVariable(gl, program.a_TexCoord, _planeBlack_.texCoordBuffer);  // Texture coordinates
+            initAttributeVariable(gl, program.a_Position, _planeBlack_.vertexsBuffer);    // Vertex coordinates
+            initAttributeVariable(gl, program.a_TexCoord, _planeBlack_.texCoordsBuffer);  // Texture coordinates
             gl.uniform1f(gl.program.u_Black, 1.0);
         
             // Bind the texture object to the target
@@ -888,125 +1350,36 @@ function jumpCode(main: Main) {
             gl.bindTexture(gl.TEXTURE_2D, texture);
         
             // Draw
-            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _planeBlack_.indexBuffer);
-            gl.drawElements(gl.TRIANGLES, _planeBlack_.numIndices, _planeBlack_.indexBuffer.type, 0);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, _planeBlack_.indicesBuffer);
+            gl.drawElements(gl.TRIANGLES, _planeBlack_.numIndices, _planeBlack_.indicesBuffer.type, 0);
           }
         
 */
 
-    // Assign the buffer objects and enable the assignment
-    initAttributeVariable(gl, program.a_Position, planeBG.vertexBuffer);    // Vertex coordinates
-    initAttributeVariable(gl, program.a_TexCoord, planeBG.texCoordBuffer);  // Texture coordinates
-    //gl.uniform1f(gl.program.u_Black, 0.0);
-
-    // Bind the texture object to the target
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-
-    // Draw
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planeBG.indexBuffer.buffer);
-    gl.drawElements(gl.TRIANGLES, planeBG.indicesLength, planeBG.indexBuffer.type, 0);
-
-
-    function initAttributeVariable(gl: WebGLRenderingContext, a_attribute: number, buffer: Buffer) {
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
-        gl.vertexAttribPointer(a_attribute, buffer.number, buffer.type, false, 0, 0);
-        gl.enableVertexAttribArray(a_attribute);
-    }
+    /*   // Assign the buffer objects and enable the assignment
+      initAttributeVariable(gl, program.a_Position, planeBG.vertexsBuffer);    // Vertex coordinates
+      initAttributeVariable(gl, program.a_TexCoord, planeBG.texCoordsBuffer);  // Texture coordinates
+      //gl.uniform1f(gl.program.u_Black, 0.0);
+  
+      // Bind the texture object to the target
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+  
+      // Draw
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, planeBG.indicesBuffer.buffer);
+      gl.drawElements(gl.TRIANGLES, planeBG.indicesLength, planeBG.indicesBuffer.type, 0);
+  
+  
+      function initAttributeVariable(gl: WebGLRenderingContext, a_attribute: number, buffer: Buffer) {
+          gl.bindBuffer(gl.ARRAY_BUFFER, buffer.buffer);
+          gl.vertexAttribPointer(a_attribute, buffer.number, buffer.type, false, 0, 0);
+          gl.enableVertexAttribArray(a_attribute);
+      } */
 }
 
 
 
 
-
-
-
-
-class Buffer {
-    buffer: WebGLBuffer
-    number: number
-    type: number
-    constructor(buffer: WebGLBuffer, number: number, type: number) {
-        this.buffer = buffer
-        this.number = number
-        this.type = type
-    }
-}
-
-class Mesh {
-    constructor() {
-
-    }
-}
-
-class PlaneMesh extends Mesh {
-    vertexBuffer: Buffer
-    texCoordBuffer: Buffer
-    indexBuffer: Buffer
-    indicesLength: number
-    constructor(main: Main, width: number, height: number, depth: number) {
-        super()
-        const { gl } = main
-
-        // Create face
-        //  v1------v0
-        //  |        | 
-        //  |        |
-        //  |        |
-        //  v2------v3
-
-        // Vertex coordinates
-        const vertices = new Float32Array([
-            width / 2, height / 2, depth, width / -2, height / 2, depth, width / -2, height / -2, depth, width / 2, height / -2, depth   // v0-v1-v2-v3
-        ]);
-
-        // Texture coordinates
-        const texCoords = new Float32Array([1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0]);
-
-        // Indices of the vertices
-        const indices = new Uint8Array([0, 1, 2, 0, 2, 3]);
-
-        // Write vertex information to buffer object
-        this.vertexBuffer = PlaneMesh.createArrayBuffer(gl, vertices, 3, gl.FLOAT);
-        this.texCoordBuffer = PlaneMesh.createArrayBuffer(gl, texCoords, 2, gl.FLOAT);
-        this.indexBuffer = PlaneMesh.createElementArrayBuffer(gl, indices, gl.UNSIGNED_BYTE);
-
-        // 记录索引的长度
-        this.indicesLength = indices.length;
-
-        // Unbind the buffer object
-        gl.bindBuffer(gl.ARRAY_BUFFER, null);
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-    }
-
-    // 创建定点浮点值缓存
-    static createArrayBuffer(gl: WebGLRenderingContext, data: Float32Array, num: number, type: number) {
-        // Create a buffer object
-        const buffer = gl.createBuffer();
-        if (!buffer) throw new Error('Failed to create the buffer object');
-
-        // Write date into the buffer object
-        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
-
-        // Store the necessary information to assign the object to the attribute variable later
-        return new Buffer(buffer, num, type)
-    }
-
-    // 创建元素索引值缓存
-    static createElementArrayBuffer(gl: WebGLRenderingContext, data: Uint8Array, type: number) {
-        // Create a buffer object
-        const buffer = gl.createBuffer();
-        if (!buffer) throw new Error('Failed to create the buffer object');
-
-        // Write date into the buffer object
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
-
-        // Store the necessary information to assign the object to the attribute variable later
-        return new Buffer(buffer, NaN, type)
-    }
-}
 
 
 /* 
@@ -1016,10 +1389,10 @@ class PlaneMesh extends Mesh {
     //g_modelMatrix.rotate(20.0, 1.0, 0.0, 0.0);
     //g_modelMatrix.rotate(angle, 0.0, 1.0, 0.0);
   
-    // Calculate the model view project matrix and pass it to u_MvpMatrix
+    // Calculate the model view project matrix and pass it to u_ProjectMatrix
     g_mvpMatrix.set(viewProjMatrix);
     g_mvpMatrix.multiply(g_modelMatrix);
-    gl.uniformMatrix4fv(program.u_MvpMatrix, false, g_mvpMatrix.elements);
+    gl.uniformMatrix4fv(program.u_ProjectMatrix, false, g_mvpMatrix.elements);
   
     drawTexturedObject(gl, program, o, texture);
   }
@@ -1031,16 +1404,16 @@ class RendererCore {
     static drawTexturedObject(gl: WebGLRenderingContext, program: WebGLProgram, target: Mesh, texture: WebGLTexture) {
         /* 
              // Assign the buffer objects and enable the assignment
-             initAttributeVariable(gl, program.a_Position, o.vertexBuffer);    // Vertex coordinates
-             initAttributeVariable(gl, program.a_TexCoord, o.texCoordBuffer);  // Texture coordinates
+             initAttributeVariable(gl, program.a_Position, o.vertexsBuffer);    // Vertex coordinates
+             initAttributeVariable(gl, program.a_TexCoord, o.texCoordsBuffer);  // Texture coordinates
            
              // Bind the texture object to the target
              gl.activeTexture(gl.TEXTURE0);
              gl.bindTexture(gl.TEXTURE_2D, texture);
            
              // Draw
-             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.indexBuffer);
-             gl.drawElements(gl.TRIANGLES, o.numIndices, o.indexBuffer.type, 0); */
+             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.indicesBuffer);
+             gl.drawElements(gl.TRIANGLES, o.numIndices, o.indicesBuffer.type, 0); */
     }
 }
 

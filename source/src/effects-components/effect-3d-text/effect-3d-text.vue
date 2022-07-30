@@ -5,6 +5,7 @@ import ViewItem from "@src/components/Projects/EffectsProjectView_Item.vue";
 import Text3D from "./l00-Text3D-A.vue";
 import Circle3DTextA from "./l00-Circle3DText-A.vue";
 import Isometric3DTextA from "./l00-Isometric3DText-A.vue";
+import Wheel3DTextA from "./l00-Wheel3DText-A.vue";
 </script>
 
 <template>
@@ -13,6 +14,10 @@ import Isometric3DTextA from "./l00-Isometric3DText-A.vue";
       <Text3D ref="vText3D">
         <span style="font-size: 3.5rem"><i style="color: #ff246f">l00</i>web<i style="color: #12b5ff">w</i>elcome</span>
       </Text3D>
+    </ViewItem>
+
+    <ViewItem style="height: 100vh" name="effect-3d-text-wheel-a">
+      <Wheel3DTextA text="WELCOME"></Wheel3DTextA>
     </ViewItem>
 
     <ViewItem style="height: 100vh" name="effect-3d-text-circle-a">

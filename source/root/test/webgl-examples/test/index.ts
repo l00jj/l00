@@ -272,6 +272,7 @@ type Point = {
     color: string
     //brightnessColor: string
 }
+
 class Background {
     image?: HTMLImageElement
     main: Main
@@ -305,34 +306,35 @@ class World {
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class Renderer {
-    main: Main
-
+    core: RendererCore
     constructor(main: Main) {
-        // Setup
-        this.main = main
-        this.main.time.onTick(this.render)
-    }
-
-
-    render = () => {
-        /* const { ctx, sizes, world, params } = this.main
-        //this.main.world.forceMapPixels && this.main.ctx.putImageData(this.main.world.forceMapPixels, 0, 0);
-        ctx.globalAlpha = 1
-        ctx.fillStyle = 'rgba(0,0,0,0.05)'
-        ctx.fillRect(0, 0, sizes.width, sizes.height)
-        ctx.globalAlpha = 0.2
-        world.render() */
-
-        //jumpCode(this.main)
-        jumpCode2(this.main)
+        this.core = new RendererCore(main)
     }
 }
-
-
-
-
-
 
 
 
@@ -407,10 +409,10 @@ class Main extends EventEmitter {
         this.time = new Time(this)
         // 设置视图大小控制器
         this.sizes = new Sizes(this, { fit: Sizes.Fit_None })
-        // 设置渲染器
-        this.renderer = new Renderer(this)
         // 生成渲染空间
         this.world = new World(this)
+        // 设置渲染器
+        this.renderer = new Renderer(this)
     }
     // 渲染
     render() {
@@ -459,36 +461,6 @@ class Main extends EventEmitter {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-const viewContainerDom = document.querySelector('.viewContainer') as HTMLElement;
-const mainRenderer = new Main(viewContainerDom)
-import("./example.png?url").then((module) => {
-    const url = module.default
-    const image = new Image();
-    image.src = url;
-    image.onload = () => {
-        mainRenderer.world.background.use(image);
-        mainRenderer.render();
-        mainRenderer.paused();
-    };
-    //const width = 474.0
-    //const height = 720.0
-
-})
 
 
 
@@ -1044,7 +1016,7 @@ void main() {
   gl_Position = u_ProjectMatrix * a_Position;
   // gl_Position = vec4(1.0, 1.0, 1.0, 1.0) * a_Position;
   //gl_Position = a_Position;
-  // gl_Position = a_Position;
+  //gl_Position = a_Position;
   v_TexCoord = a_TexCoord;
 }`;
 
@@ -1059,6 +1031,10 @@ varying vec2 v_TexCoord;
 void main() {
   gl_FragColor = texture2D(u_Sampler, v_TexCoord);
 }`;
+
+
+
+
 
 
 
@@ -1086,6 +1062,7 @@ function jumpCode2(main: Main) {
 
 
     // 底板图形
+    //var planeBG = new PlaneMesh(sizes.width, sizes.height, 0);
     var planeBG = new PlaneMesh(sizes.width, sizes.height, 0);
     planeBG.update(gl)
 
@@ -1107,6 +1084,12 @@ function jumpCode2(main: Main) {
     // 设置视觉范围
     // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/viewport
     gl.viewport(0, 0, sizes.width, sizes.height);
+
+    // Enable alpha blending
+    // gl.enable(gl.BLEND);//gl.disable (gl.BLEND);
+    // Set blending function
+    // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
 
     // 传入参数
     gl.uniformMatrix4fv(shaderProgram.variables.uniforms.u_ProjectMatrix, false, mainCamera.projectionMatrix.elements);
@@ -1130,11 +1113,10 @@ function jumpCode2(main: Main) {
         gl.enableVertexAttribArray(a_attribute);
     }
 
+
+
+
 }
-
-
-
-
 
 
 
@@ -1400,21 +1382,442 @@ function jumpCode(main: Main) {
 
 
 
-class RendererCore {
-    static drawTexturedObject(gl: WebGLRenderingContext, program: WebGLProgram, target: Mesh, texture: WebGLTexture) {
-        /* 
-             // Assign the buffer objects and enable the assignment
-             initAttributeVariable(gl, program.a_Position, o.vertexsBuffer);    // Vertex coordinates
-             initAttributeVariable(gl, program.a_TexCoord, o.texCoordsBuffer);  // Texture coordinates
-           
-             // Bind the texture object to the target
-             gl.activeTexture(gl.TEXTURE0);
-             gl.bindTexture(gl.TEXTURE_2D, texture);
-           
-             // Draw
-             gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, o.indicesBuffer);
-             gl.drawElements(gl.TRIANGLES, o.numIndices, o.indicesBuffer.type, 0); */
+
+
+
+
+class IndepFrame {
+    width = 100
+    height = 100
+    isNeedUpdate = true
+    constructor() { }
+
+    framebuffer: WebGLFramebuffer | null = null;
+    depthBuffer: WebGLRenderbuffer | null = null
+    texture: WebGLTexture | null = null
+
+    update(gl: WebGLRenderingContext) {
+        // clear handling function
+        const clear = () => {
+            if (this.framebuffer) gl.deleteFramebuffer(this.framebuffer);
+            if (this.texture) gl.deleteTexture(this.texture);
+            if (this.depthBuffer) gl.deleteRenderbuffer(this.depthBuffer);
+        }
+
+        // Define the error handling function
+        const error = function () {
+            clear()
+            return false;
+        }
+
+        // 初始化
+        clear()
+
+        // Create a frame buffer object (FBO)
+        this.framebuffer = gl.createFramebuffer();
+        if (!this.framebuffer) {
+            console.log('Failed to create frame buffer object');
+            return error();
+        }
+
+        // Create a texture object and set its size and parameters
+        this.texture = gl.createTexture(); // Create a texture object
+        if (!this.texture) {
+            console.log('Failed to create texture object');
+            return error();
+        }
+        gl.bindTexture(gl.TEXTURE_2D, this.texture); // Bind the object to target
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, this.width, this.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+
+        // Create a renderbuffer object and Set its size and parameters
+        this.depthBuffer = gl.createRenderbuffer(); // Create a renderbuffer object
+        if (!this.depthBuffer) {
+            console.log('Failed to create renderbuffer object');
+            return error();
+        }
+        gl.bindRenderbuffer(gl.RENDERBUFFER, this.depthBuffer); // Bind the object to target
+        gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this.width, this.height);
+
+        // Attach the texture and the renderbuffer object to the FBO
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+        gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this.depthBuffer);
+
+        // Check if FBO is configured correctly
+        var e = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        if (gl.FRAMEBUFFER_COMPLETE !== e) {
+            console.log('Frame buffer object is incomplete: ' + e.toString());
+            return error();
+        }
+
+        // Unbind the buffer object
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.bindTexture(gl.TEXTURE_2D, null);
+        gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const backgroundShader_Vertex_Source = `
+  attribute vec4 a_Position;
+  attribute vec2 a_TexCoord;
+  uniform mat4 u_ProjectMatrix;
+  varying vec2 v_TexCoord;
+  void main() {
+    gl_Position = a_Position;
+    v_TexCoord = a_TexCoord;
+  }`;
+
+// Fragment shader program
+var backgroundShader_Fragment_Source = `
+  #ifdef GL_ES
+  precision mediump float;
+  #endif
+  
+  uniform sampler2D u_Sampler;
+  uniform vec4 u_AddColor;
+  
+  varying vec2 v_TexCoord;
+  
+  vec4 normalMix(vec4 aColor, vec4 bColor) {
+    vec4 result = (1.0 - bColor.a) * aColor + bColor.a * bColor;
+    result.a = 1.0;
+    return result;
+  }
+  
+  void main() {
+    gl_FragColor = normalMix(texture2D(u_Sampler, v_TexCoord), u_AddColor);
+  }`;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+const particlesShader_Vertex_Source = `
+attribute vec4 a_Position;
+attribute vec2 a_TexCoord;
+uniform mat4 u_ProjectMatrix;
+varying vec2 v_TexCoord;
+void main() {
+  gl_Position = u_ProjectMatrix * a_Position;
+  v_TexCoord = a_TexCoord;
+  gl_PointSize = 10.0;
+}`;
+
+// Fragment shader program
+var particlesShader_Fragment_Source = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+varying vec2 v_TexCoord;
+
+void main() {
+  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+}`;
+
+
+
+
+
+class RendererCore {
+    main: Main
+    constructor(main: Main) {
+        this.main = main
+        // Setup
+        this.main = main
+        this.main.time.onTick(this.render)
+    }
+
+
+
+    mainCamera!: OrthographicCamera
+    textures = {} as { [key: string]: TextureSource }
+    programs = {} as { [key: string]: ShaderProgram }
+    layers = [] as any[]
+    backgroundPlane!: PlaneMesh
+
+
+    // 创建离屏渲染帧，采用两帧互相作为下一帧周转
+    currentIndepFrame = new IndepFrame()
+    lastIndepFrame = new IndepFrame()
+
+
+    init() {
+        const { gl, sizes, world } = this.main
+
+        // 创建离屏渲染帧，采用两帧互相作为下一帧周转
+        this.currentIndepFrame.width = sizes.width
+        this.currentIndepFrame.height = sizes.height
+        this.currentIndepFrame.update(gl)
+
+        // 创建离屏渲染帧，采用两帧互相作为下一帧周转
+        this.lastIndepFrame.width = sizes.width
+        this.lastIndepFrame.height = sizes.height
+        this.lastIndepFrame.update(gl)
+
+        // 生成背景着色器
+        const backgroundProgram = new ShaderProgram(
+            {
+                attributes: ["a_Position", "a_TexCoord"],
+                uniforms: ["u_ProjectMatrix", "u_Sampler", "u_AddColor"],
+            },
+            backgroundShader_Vertex_Source,
+            backgroundShader_Fragment_Source
+        )
+        backgroundProgram.init && backgroundProgram.init(gl);
+        if (!backgroundProgram.program) throw new Error('Shader Program Create Fail')
+        // 保存着色器
+        this.programs.backgroundProgram = backgroundProgram
+
+        // 生成粒子着色器
+        const particlesProgram = new ShaderProgram(
+            {
+                attributes: ["a_Position", "a_TexCoord"],
+                uniforms: ["u_ProjectMatrix"],
+            },
+            particlesShader_Vertex_Source,
+            particlesShader_Fragment_Source
+        )
+        particlesProgram.init && particlesProgram.init(gl);
+        if (!particlesProgram.program) throw new Error('Shader Program Create Fail')
+        // 保存着色器
+        this.programs.particlesProgram = particlesProgram
+
+
+
+        // 生成图片纹理
+        const imgTexture = new TextureSource()
+        if (world.background.image) imgTexture.setImage(world.background.image);
+        imgTexture.update(gl)
+        // 保存纹理
+        this.textures.img = imgTexture
+
+
+        // 底板图形
+        const backgroundPlane = new PlaneMesh(2, 2, 0);
+        backgroundPlane.update(gl)
+        this.backgroundPlane = backgroundPlane
+
+        // 摄像机
+        const mainCamera = new OrthographicCamera(-sizes.width / 2, sizes.width / 2, sizes.height / 2, -sizes.height / 2, -100.0, 100.0)
+        mainCamera.position.set(0, 0, 100)
+        mainCamera.position.set(0, 0, 0)
+        this.mainCamera = mainCamera
+
+    }
+
+
+    render = () => {
+        time++
+        if (time > 900) this.main.paused();
+        const { gl, sizes, world } = this.main
+        /* const { ctx, sizes, world, params } = this.main
+        //this.main.world.forceMapPixels && this.main.ctx.putImageData(this.main.world.forceMapPixels, 0, 0);
+        ctx.globalAlpha = 1
+        ctx.fillStyle = 'rgba(0,0,0,0.05)'
+        ctx.fillRect(0, 0, sizes.width, sizes.height)
+        ctx.globalAlpha = 0.2
+        world.render() */
+
+        //jumpCode(this.main)
+        //jumpCode2(this.main)
+
+        // 必须要有 Program
+        const backgroundProgram = this.programs.backgroundProgram
+        if (!backgroundProgram || !backgroundProgram.program) return false;
+
+        // 必须要有 Program
+        const particlesProgram = this.programs.particlesProgram
+        if (!particlesProgram || !particlesProgram.program) return false;
+
+        // 必须要有 Camera
+        const mainCamera = this.mainCamera
+
+        // 底板
+        const backgroundPlane = this.backgroundPlane
+
+        // 底图
+        const imgTexture = this.textures.img
+        if (!imgTexture || !imgTexture.texture) return false;
+
+
+
+
+
+        /**
+         *  ----- 渲染环节 ------
+         */
+        gl.clearColor(1.0, 0.0, 0.0, 1.0); // Set clear color (the color is slightly changed)
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);  // Clear FBO
+
+        // 使用离屏帧
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.currentIndepFrame.framebuffer);
+
+        // 使用着色器
+        gl.useProgram(backgroundProgram.program)
+
+        // 设置视觉范围
+        // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/viewport
+        gl.viewport(0, 0, sizes.width, sizes.height);
+
+        // Enable alpha blending
+        // gl.enable(gl.BLEND);//gl.disable (gl.BLEND);
+        // Set blending function
+        // gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+
+        // 传入参数
+        gl.uniformMatrix4fv(backgroundProgram.variables.uniforms.u_ProjectMatrix, false, mainCamera.projectionMatrix.elements);
+
+        // Assign the buffer objects and enable the assignment
+        initAttributeVariable(gl, backgroundProgram.variables.attributes.a_Position, backgroundPlane.vertexsBuffer);    // Vertex coordinates
+        initAttributeVariable(gl, backgroundProgram.variables.attributes.a_TexCoord, backgroundPlane.texCoordsBuffer);  // Texture coordinates
+        gl.uniform1i(backgroundProgram.variables.uniforms.u_Sampler, 0);
+        gl.uniform4fv(backgroundProgram.variables.uniforms.u_AddColor, [0, 0, 0, 0.05]);
+
+        // Bind the texture object to the target
+        gl.activeTexture(gl.TEXTURE0);
+
+
+        //////////////////// 测试
+        if (time < 10) {
+            gl.bindTexture(gl.TEXTURE_2D, imgTexture.texture);
+            gl.uniform4fv(backgroundProgram.variables.uniforms.u_AddColor, [0, 0, 0, 0])
+        } else {
+            gl.bindTexture(gl.TEXTURE_2D, this.lastIndepFrame.texture);
+        }
+        ////////////////////
+
+        // Draw
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, backgroundPlane.indicesBuffer.buffer!);
+        gl.drawElements(gl.TRIANGLES, backgroundPlane.indicesBuffer.data.length, backgroundPlane.indicesBuffer.dataType, 0);
+
+        function initAttributeVariable(gl: WebGLRenderingContext, a_attribute: number, attributeBuffer: AttributeBuffer) {
+            gl.bindBuffer(gl.ARRAY_BUFFER, attributeBuffer.buffer!);
+            gl.vertexAttribPointer(a_attribute, attributeBuffer.dataNumber, attributeBuffer.dataType, false, 0, 0);
+            gl.enableVertexAttribArray(a_attribute);
+        }
+
+        // 显示渲染结果
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.uniform4fv(backgroundProgram.variables.uniforms.u_AddColor, [0, 0, 0, 0]);
+        gl.bindTexture(gl.TEXTURE_2D, this.currentIndepFrame.texture);
+        gl.drawElements(gl.TRIANGLES, backgroundPlane.indicesBuffer.data.length, backgroundPlane.indicesBuffer.dataType, 0);
+
+        // 两帧交换
+        const temp = this.currentIndepFrame
+        this.currentIndepFrame = this.lastIndepFrame
+        this.lastIndepFrame = temp
+
+
+
+        // 渲染粒子 
+        gl.useProgram(particlesProgram.program)
+
+        const vertices = new Float32Array([
+            0.0, 0.0, -237.0, -360, 100.0, -100
+        ]);
+
+        var n = 3; // The number of vertices
+
+        // Create a buffer object
+        var vertexBuffer = gl.createBuffer();
+        if (!vertexBuffer) {
+            console.log('Failed to create the buffer object');
+            return -1;
+        }
+
+        // Bind the buffer object to target
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+        // Write date into the buffer object
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+
+        // Assign the buffer object to a_Position variable
+        gl.vertexAttribPointer(particlesProgram.variables.attributes.a_Position, 2, gl.FLOAT, false, 0, 0);
+
+        // Enable the assignment to a_Position variable
+        gl.enableVertexAttribArray(particlesProgram.variables.attributes.a_Position);
+
+        // 传入参数
+        gl.uniformMatrix4fv(particlesProgram.variables.uniforms.u_ProjectMatrix, false, mainCamera.projectionMatrix.elements);
+
+
+        // Draw three points
+        gl.drawArrays(gl.POINTS, 0, n);
+
+    }
+
+
+}
+
+let time = 0
+
+
+
+
+
+
+
+
+
+const viewContainerDom = document.querySelector('.viewContainer') as HTMLElement;
+const mainRenderer = new Main(viewContainerDom)
+import("./example.png?url").then((module) => {
+    const url = module.default
+    const image = new Image();
+    image.src = url;
+    image.onload = () => {
+        mainRenderer.world.background.use(image);
+        mainRenderer.renderer.core.init()
+        mainRenderer.render();
+        // mainRenderer.paused();
+    };
+    //const width = 474.0
+    //const height = 720.0
+})
+
+
+
+
+
+
+
+
+
 
 

@@ -6,10 +6,14 @@ import NeumorphismBaseA from "./l00-Neumorphism-Base-A.vue";
 import NeumorphismClockA from "./l00-Neumorphism-Clock-A.vue";
 import NeumorphismClockB from "./l00-Neumorphism-Clock-B.vue";
 import NeumorphismPlayerA from "./l00-Neumorphism-Player-A.vue";
+import NeumorphismSliderA from "./l00-Neumorphism-Slider-A.vue";
 </script>
 
 <template>
   <ViewGroup>
+    <ViewItem style="height: 100vh" name="effect-neumorphism-slider-a">
+      <NeumorphismSliderA></NeumorphismSliderA>
+    </ViewItem>
     <ViewItem style="height: 100vh" name="effect-neumorphism-player-a">
       <NeumorphismPlayerA></NeumorphismPlayerA>
     </ViewItem>

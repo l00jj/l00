@@ -831,6 +831,7 @@ class World {
         const { params, sizes } = this.main
         const number = params.particles.baseNumber.value * (params.particles.baseNumber.density.enable ?
             Math.round(sizes.width * sizes.height / (params.particles.baseNumber.density.value ** 2)) : 1)
+        console.log('当前粒子数',number)
         for (let i = 0; i < number; i++) {
             const size = 1.5
             const particle = new Particle(this.main, {

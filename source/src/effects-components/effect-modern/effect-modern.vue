@@ -6,10 +6,15 @@ import ModernA from "./l00-Modern-A.vue";
 import ModernB from "./l00-Modern-B.vue";
 import ModernC from "./l00-Modern-C.vue";
 import ModernD from "./l00-Modern-D.vue";
+import ModernE from "./l00-Modern-E.vue";
 </script>
 
 <template>
   <ViewGroup>
+    <ViewItem style="height: 80vh" name="effect-modern-e">
+      <ModernE></ModernE>
+    </ViewItem>
+
     <ViewItem style="height: 80vh" name="effect-modern-d">
       <ModernD></ModernD>
     </ViewItem>

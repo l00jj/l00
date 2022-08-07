@@ -20,7 +20,7 @@ class Sizes {
      * :contain 优先内容，与外框不一致时等比缩小并尽可能把全部内容显示
      * :cover 优先填充，与外框不一致时等比放大并尽可能把覆盖外框
      * :fill 优先形状，与外框不一致时变形拉伸贴合外框
-     * :none 动态大小
+     * :none 动态大小，外框适用画布
      */
     static Fit_Contain = Symbol()
     static Fit_Cover = Symbol()
@@ -71,11 +71,13 @@ class Sizes {
         // Sizes.Fit_None 时无论如何都更新
         // 其他模式下，按需更新
         if (this.fit === Sizes.Fit_None) {
-            width = width ? width : this.main.viewContainerDom.offsetWidth
-            height = height ? height : this.main.viewContainerDom.offsetHeight
+            width = width ? width : viewContainerDom.offsetWidth
+            height = height ? height : viewContainerDom.offsetHeight
             updateSize(width, height)
             canvasDom.style.width = width + 'px'
             canvasDom.style.height = height + 'px'
+            viewContainerDom.style.width = width + 'px'
+            viewContainerDom.style.height = height + 'px'
         } else if ((this.width !== width || this.height !== height) && width && height) {
             updateSize(width, height)
             canvasDom.style.width = '100%'
@@ -259,18 +261,6 @@ class GuiHelper {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 declare function getWebGLContext(canvasDom: HTMLCanvasElement): WebGLRenderingContext
 
 class Main extends EventEmitter {
@@ -346,7 +336,6 @@ class Main extends EventEmitter {
         this.emit(Main.Event_Destroyed); // Emit Destroyed Event
     }
 }
-
 
 
 
@@ -661,50 +650,63 @@ class TextureSource {
 class Object3D {
     static DefaultUp = new THREE.Vector3(0, 1, 0);
     static DraftMatrix = new THREE.Matrix4();
-    quaternion = new THREE.Matrix4(); // 参考源码推测用于视距矩阵
+
+    isViewMatrixChanged = true
+    viewMatrix = new THREE.Matrix4(); // 参考源码中属性 quaternion 推测用于视距矩阵
+
     position = new THREE.Vector3(0, 0, 0);
     up = Object3D.DefaultUp.clone();
+
     constructor() { }
-
-}
-
-// 参考 Camera 源码：https://github.com/mrdoob/three.js/blob/dev/src/cameras/Camera.js
-class Camera extends Object3D {
-    projectionMatrix = new THREE.Matrix4();
-    constructor() {
-        super()
+    lookAt(x: number, y: number, z: number) {
+        // 源码中重置草稿 并 设置视距方向，此处简化
+        this.viewMatrix.identity()
+        this.viewMatrix.lookAt(this.position, new THREE.Vector3(x, y, z), this.up)
+        this.isViewMatrixChanged = true
     }
 }
 
 // 参考图示：https://www.likecs.com/show-203963589.html
 // API： https://threejs.org/docs/index.html#api/en/math/Matrix4.lookAt
+// 参考 Camera 源码：https://github.com/mrdoob/three.js/blob/dev/src/cameras/Camera.js
 // 参考 OrthographicCamera 源码：https://github.com/mrdoob/three.js/blob/dev/src/cameras/OrthographicCamera.js
-class OrthographicCamera extends Camera {
+class OrthographicCamera extends Object3D {
     left = -1
     right = 1
     top = 1
     bottom = -1
     near = 0.1
     far = 2000
-    constructor(left = - 1, right = 1, top = 1, bottom = - 1, near = 0.1, far = 2000) {
+    projectionMatrix = new THREE.Matrix4();
+    pvMatrix = new THREE.Matrix4();
+    constructor() {
         super()
+        this.update()
+    }
+
+    // 设置视觉矩阵换算
+    update(left = - 1, right = 1, top = 1, bottom = - 1, near = 0.1, far = 2000) {
         this.left = left
         this.right = right
         this.top = top
         this.bottom = bottom
         this.near = near
         this.far = far
-        // 设置视觉矩阵换算
-        this.projectionMatrix.makeOrthographic(left, right, top, bottom, near, far)
+        this.projectionMatrix.identity().makeOrthographic(left, right, top, bottom, near, far)
     }
 
-    // 暂时为了方便，直接整合视距矩阵
-    lookAt(x: number, y: number, z: number) {
-        // 重置草稿 并 设置视距方向
-        const lookAt = Object3D.DraftMatrix.identity()
-            .lookAt(this.position, new THREE.Vector3(x, y, z), this.up)
-        this.projectionMatrix.premultiply(lookAt)
+    // 获取合成视觉矩阵
+    getPVMatrix() {
+        if (this.isViewMatrixChanged) {
+            //const lookAt = Object3D.DraftMatrix.identity()
+            //.lookAt(this.position, new THREE.Vector3(x, y, z), this.up)
+            //this.projectionMatrix.premultiply(lookAt)
+            this.pvMatrix.identity().multiply(this.viewMatrix).multiply(this.projectionMatrix)
+            this.isViewMatrixChanged = false
+        }
+        return this.pvMatrix.elements
     }
+
 }
 
 
@@ -1180,6 +1182,8 @@ class DynamicsMap {
 class RendererCore {
     // 用于完成初始化后触发的事件
     static Event_Ready = Symbol()
+    static Event_ParticlesNumber_Changed = Symbol()
+
     main: Main
     constructor(main: Main) {
         this.main = main
@@ -1189,7 +1193,7 @@ class RendererCore {
         this.main.once(RendererCore.Event_Ready, () => this.main.time.onTick(() => this.render()))
     }
 
-    mainCamera!: OrthographicCamera
+    camera = new OrthographicCamera()
 
     programs = {} as { [key: string]: ShaderProgram }
     layers = [] as any[]
@@ -1215,16 +1219,6 @@ class RendererCore {
 
         // Set clear color (the color is slightly changed)
         gl.clearColor(0.0, 0.0, 0.0, 0.0);
-
-        // 创建离屏渲染帧，采用两帧互相作为下一帧周转
-        this.currentIndepFrame.width = sizes.width
-        this.currentIndepFrame.height = sizes.height
-        this.currentIndepFrame.update(gl)
-
-        // 创建离屏渲染帧，采用两帧互相作为下一帧周转
-        this.lastIndepFrame.width = sizes.width
-        this.lastIndepFrame.height = sizes.height
-        this.lastIndepFrame.update(gl)
 
         // 背景力学图着色器
         const imageProgram = new ShaderProgram(
@@ -1304,7 +1298,6 @@ vec4 normalMix(vec4 aColor, vec4 bColor) {
 
 vec4 addParticles(vec4 aColor, vec4 bColor) {
     vec4 result = (1.0 - bColor.a) * aColor + bColor.a * bColor;
-    //bColor.a = 0.5;
     result.a=1.0;
     return result;
 }
@@ -1327,60 +1320,13 @@ void main() {
 
 
         // 生成粒子着色器
-        /* const particlesProgram = new ShaderProgram(
-            [
-                "attribute vec4 a_Position",
-                "uniform sampler2D u_Sampler",
-                "uniform float u_ParticleSize",
-                "uniform mat4 u_ProjectMatrix",
-                "uniform mat3 u_TexCoordMatrix",
-            ],
-            // 顶点着色器
-            `
-attribute vec4 a_Position;
-
-uniform mat4 u_ProjectMatrix;
-uniform float u_ParticleSize;
-
-varying vec2 v_TexCoord;
-
-void main() {
-  gl_Position = u_ProjectMatrix * a_Position;
-  v_TexCoord = vec2(a_Position);
-  gl_PointSize = u_ParticleSize;
-}`,
-            // 片着色器
-            `
-#ifdef GL_ES
-precision mediump float;
-#endif
-
-uniform sampler2D u_Sampler;
-
-varying vec2 v_TexCoord;
-
-void main() {
-  // gl_FragColor = vec4(1.0, 1.0, 0.0, 1.0);
-  // gl_PointCoord
-  //vec4 temp = texture2D(u_Sampler, vec2(u_TexCoordMatrix * vec3(v_TexCoord, 1.0)));
-  gl_FragColor = texture2D(u_Sampler, vec2(0.0, 0.0));
-  //gl_FragColor = vec4(0.623, 0.232, 0.1, 0.5);
-
-  // 点的样式
-  float strength = step(0.5, 1.0 - distance(gl_PointCoord, vec2(0.5)));
-  //float strength = clamp(100.0 * (clamp(1.0 - distance(gl_PointCoord, vec2(0.5)), 0.5, 1.0) - 0.5), 0.0, 1.0);
-  
-  gl_FragColor = vec4(1.0, 1.0, 1.0, 0.5 * strength);
-
-  
-}`
-        ) */
         const particlesProgram = new ShaderProgram(
             [
                 "attribute vec4 a_Position",
                 "attribute float a_Opacity",
                 "uniform mat4 u_ProjectMatrix",
                 "uniform float u_ParticleSize",
+                "uniform vec4 u_InputColor",
                 "uniform mat3 u_TexCoordMatrix",
                 "uniform sampler2D u_Sampler",
             ],
@@ -1409,21 +1355,19 @@ precision mediump float;
 #endif
 
 uniform sampler2D u_Sampler;
+uniform vec4 u_InputColor;
 
 varying vec2 v_TexCoord;
 varying float v_Opacity;
-
-//mat4 temp_Matrix = [ 0.0, 0.0, 0.0];
 
 
 void main() {
   // 点的样式
   float strength = step(0.5, 1.0 - distance(gl_PointCoord, vec2(0.5)));
-  float aa = (0.5 + 0.5 * v_Opacity) * strength;
-  gl_FragColor = texture2D(u_Sampler, v_TexCoord);
-  gl_FragColor.a = aa;
-  //gl_FragColor = vec4(1.0, 1.0, 1.0, 0.5);
-  
+  //float aa = (0.5 + 0.5 * v_Opacity) * strength;
+  float aValue = (0.9 + 0.1 * v_Opacity) * strength;
+  gl_FragColor = u_InputColor.a == 0.0 ? texture2D(u_Sampler, v_TexCoord) : u_InputColor;
+  gl_FragColor.a = aValue;
 }`
         )
         // 保存着色器
@@ -1438,14 +1382,7 @@ void main() {
         backgroundPlane.update(gl)
         this.backgroundPlane = backgroundPlane
 
-        // 摄像机
-        const mainCamera = new OrthographicCamera(-sizes.width / 2, sizes.width / 2, sizes.height / 2, -sizes.height / 2, -100.0, 100.0)
-        mainCamera.position.set(0, 0, 100)
-        mainCamera.position.set(0, 0, 0)
-        this.mainCamera = mainCamera
-
     }
-
 
     // 纹理集合
     textures = {
@@ -1469,6 +1406,8 @@ void main() {
             const height = image.naturalHeight
             // 更新大小
             sizes.update({ width, height })
+            // 更新摄像机
+            this.camera.update(-sizes.width / 2, sizes.width / 2, sizes.height / 2, -sizes.height / 2, -100.0, 100.0)
             // 设置视觉范围
             // https://developer.mozilla.org/zh-CN/docs/Web/API/WebGLRenderingContext/viewport
             gl.viewport(0, 0, sizes.width, sizes.height);
@@ -1478,23 +1417,22 @@ void main() {
             this.particlesIndepFrame.width = sizes.width
             this.particlesIndepFrame.height = sizes.height
             this.particlesIndepFrame.update(gl)
-            // 统计粒子数，每 10*10 个像素，n个粒子
-            const particlesNumber = Math.floor(12 * sizes.width * sizes.height / (10 * 10))
-            console.log('粒子数', particlesNumber)
-            // 生成粒子列表
-            this.particles.create(particlesNumber)
-            // 初始化粒子
-            for (let particle of this.particles.list) {
-                particle.position = [(Math.random() - 0.5) * sizes.width, sizes.height / 2]
-                particle.speed = 0.5 + Math.random() * 2.0
-                particle.angle = -45
-            }
+            // 创建离屏渲染帧，采用两帧互相作为下一帧周转
+            this.currentIndepFrame.width = sizes.width
+            this.currentIndepFrame.height = sizes.height
+            this.currentIndepFrame.update(gl)
+            // 创建离屏渲染帧，采用两帧互相作为下一帧周转
+            this.lastIndepFrame.width = sizes.width
+            this.lastIndepFrame.height = sizes.height
+            this.lastIndepFrame.update(gl)
+            // 生成粒子
+            this.createParticles()
             // 粒子位置转换图片对应坐标
             const particlesTexCoordMatrix = this.particles.texCoordMatrix;
             particlesTexCoordMatrix.identity()
             particlesTexCoordMatrix.scale(1 / sizes.width, 1 / sizes.height)
             particlesTexCoordMatrix.translate(0.5, 0.5)
-            
+
             ///////////测试
             // window.particlesTexCoordMatrix = particlesTexCoordMatrix
             // this.particles.particleSize=100
@@ -1516,7 +1454,47 @@ void main() {
         image.onload = onImageLoaded
     }
 
-
+    // 粒子密度，每100平方像素多少个粒子
+    particlesDensity = 12
+    // 粒子初始运动角度
+    particlesInitAngle = -45 as -45 | 0 | -90
+    // 粒子偏转，0.0 ~ 5.0
+    particlesDeflection = 0.0
+    // 粒子初始位置
+    particlesInitPosition = 'top' as 'top' | 'left' | 'random'
+    // 粒子颜色是否跟随图片
+    particlesIsColourful = true
+    // 粒子颜色指定颜色，RGB
+    particlesInputColor = [1, 1, 1]
+    // 用于创建新粒子
+    createParticles() {
+        const { gl, sizes } = this.main
+        // 统计粒子数，每 10*10 个像素，n个粒子
+        const particlesNumber = Math.floor(this.particlesDensity * sizes.width * sizes.height / (10 * 10))
+        // 生成粒子列表
+        this.particles.create(particlesNumber)
+        // 初始化粒子
+        this.initParticles()
+        // 触发事件
+        this.main.emit(RendererCore.Event_ParticlesNumber_Changed, particlesNumber)// 提示更新粒子数
+    }
+    // 用于即时初始化粒子
+    initParticles() {
+        const { sizes } = this.main
+        const particlesList = this.particles.list
+        const particlesInitPosition = this.particlesInitPosition
+        const particlesInitAngle = this.particlesInitAngle
+        // 3种初始位置方程
+        const initPosition = particlesInitPosition === "top" ? () => [(Math.random() - 0.5) * sizes.width, 0.5 * sizes.height] :
+            particlesInitPosition === "left" ? () => [- 0.5 * sizes.width, (Math.random() - 0.5) * sizes.height] :
+                () => [(Math.random() - 0.5) * sizes.width, (Math.random() - 0.5) * sizes.height]
+        // 逐个更新
+        for (let particle of particlesList) {
+            particle.position = initPosition()
+            particle.speed = 0.5 + Math.random() * 2.0
+            particle.angle = particlesInitAngle
+        }
+    }
 
 
 
@@ -1649,8 +1627,6 @@ void main() {
 
 
     render = () => {
-        time++
-        if (time > 60 * 60) this.main.paused();
         const { gl, sizes } = this.main
 
         // 必须要有 Program
@@ -1666,7 +1642,7 @@ void main() {
         if (!particlesProgram || !particlesProgram.program) return false;
 
         // 必须要有 Camera
-        const mainCamera = this.mainCamera
+        const camera = this.camera
 
         // 底板
         const backgroundPlane = this.backgroundPlane
@@ -1707,12 +1683,17 @@ void main() {
         const positionsOpacitys = new Float32Array(particlesList.length * 1)
 
         // 更新粒子位置
-        for (let index = 0, len = particlesList.length, width = dynamicsMap.width, height = dynamicsMap.height, pointSize = 2; index < len; index++) {
+        for (let len = particlesList.length,
+            width = dynamicsMap.width,
+            height = dynamicsMap.height,
+            particlesDeflection = this.particlesDeflection,
+            pointSize = 2,
+            index = 0; index < len; index++) {
             const particle = particlesList[index]
             // 粒子坐标
             const lastPosition = particle.position
             // 计算速度
-            let speed = particle.speed, opacity = 1.0
+            let speed = particle.speed, opacity = 0.0
             // 转换坐标
             const indexY = Math.floor(lastPosition[1] + height / 2)
             const indexX = Math.floor(lastPosition[0] + width / 2)
@@ -1724,7 +1705,7 @@ void main() {
                 speed = speed * r + speed * (1 - r) * (1 - dynamics.averageRatio)
                 opacity = dynamics.averageRatio
                 // 计算度数
-                particle.angle += 0.01 * dynamics.averageRatio % 360
+                particle.angle += particlesDeflection * dynamics.averageRatio % 360
             }
             // 计算移动距离
             const distance = speed
@@ -1772,13 +1753,16 @@ void main() {
         gl.enableVertexAttribArray(particlesProgram.variables.a_Opacity.location as number);
 
         // 传入视觉参数
-        gl.uniformMatrix4fv(particlesProgram.variables.u_ProjectMatrix.location, false, mainCamera.projectionMatrix.elements);
+        gl.uniformMatrix4fv(particlesProgram.variables.u_ProjectMatrix.location, false, camera.getPVMatrix());
 
         // 传入粒子对应图片uv矩阵换算
         gl.uniformMatrix3fv(particlesProgram.variables.u_TexCoordMatrix.location, false, this.particles.texCoordMatrix.elements);
 
         // 传入粒子大小参数
         gl.uniform1f(particlesProgram.variables.u_ParticleSize.location, this.particles.particleSize);
+
+        // 传入粒子颜色参数
+        gl.uniform4fv(particlesProgram.variables.u_InputColor.location, [...this.particlesInputColor, this.particlesIsColourful ? 0 : 1]);
 
         // 放入图片
         gl.activeTexture(gl.TEXTURE0);
@@ -1791,27 +1775,6 @@ void main() {
 
         // Draw points
         gl.drawArrays(gl.POINTS, 0, particlesList.length);
-
-
-
-        /*  if (!window.dynamicsMap) {
-             window.dynamicsMap = dynamicsMap
-             window.particles = this.particles
-             console.log(this.particles)
-             console.log(dynamicsMap)
-             // 读取像素
-             const pixelsLength = sizes.width * sizes.height * 4; // 宽 * 高 * RGBA
-             const pixels = new Uint8Array(1 * 1 * 4); // Array for storing the pixel value
-             //gl.readPixels(186, 258, 200, 200, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
-             gl.readPixels(200, 320, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);//128 128 128 64
-             //gl.readPixels(250, 370, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);//191 191 191 96
-             console.log(pixels)
-             // 
-             window.pixels = pixels
-         } */
-
-
-
 
         /**
          * 
@@ -1841,15 +1804,12 @@ void main() {
         initAttributeVariable(backgroundProgram.variables.a_TexCoord, backgroundPlane.texCoordsBuffer);  // Texture coordinates
 
         // 添加减退颜色
-        gl.uniform4fv(backgroundProgram.variables.u_AddColor.location, [0, 0, 0, 0.05]);
-
-
-
-
+        gl.uniform4fv(backgroundProgram.variables.u_AddColor.location, [0, 0, 0, 0.02]);
 
         // 设置 1号纹理 背景
         gl.activeTexture(gl.TEXTURE0);
         //////////////////// 测试
+        time++
         if (time < 10) {
             //if (time) {
             gl.bindTexture(gl.TEXTURE_2D, originalImgTexture.texture);
@@ -1877,13 +1837,6 @@ void main() {
         const temp = this.currentIndepFrame
         this.currentIndepFrame = this.lastIndepFrame
         this.lastIndepFrame = temp
-
-
-        /*         function initAttributeVariable(gl: WebGLRenderingContext, a_attribute: number, attributeBuffer: AttributeBuffer) {
-                    gl.bindBuffer(gl.ARRAY_BUFFER, attributeBuffer.buffer!);
-                    gl.vertexAttribPointer(a_attribute, attributeBuffer.dataNumber, attributeBuffer.dataType, false, 0, 0);
-                    gl.enableVertexAttribArray(a_attribute);
-                } */
 
         /**
          * 
@@ -1919,16 +1872,112 @@ void main() {
 let time = 0
 
 
-
 class Renderer {
     core: RendererCore
     constructor(main: Main) {
         this.core = new RendererCore(main)
+        if (main.guiHelper) new RendererCoreHelper(main, this.core)
     }
 }
 
+class RendererCoreHelper {
+    constructor(main: Main, core: RendererCore) {
+        if (!main.guiHelper) return;
+        const gui = main.guiHelper.datGui.ui
+        const fun = {
+            toggle() {
+                _rendererRender_.value = !_rendererRender_.value
+                if (_rendererRender_.value) {
+                    main.render()
+                    rendererRender.name(`渲染中-点击暂停`)
+                } else {
+                    main.paused()
+                    rendererRender.name(`暂停渲染-点击开始`)
+                }
+            },
+            getParticlesNumber() {
+                const number = core.particles.list.length
+                particlesNumber.name(`当前粒子数: ${number}`)
+            }
+        }
+        // 渲染器
+        const RendererFolder = gui.addFolder('Renderer')
+        RendererFolder.open()
+        // 暂停或开始
+        const _rendererRender_ = { value: true }
+        const rendererRender = RendererFolder.add(fun, 'toggle').name(`渲染中-点击暂停`)
+        // 粒子
+        const ParticlesFolder = gui.addFolder('Particles')
+        ParticlesFolder.open()
+        const particlesDensity = ParticlesFolder.add(core, 'particlesDensity', 1, 20, 1).name(`粒子密度`)
+            .onFinishChange(() => core.createParticles())
+        // 显示当前粒子数量
+        const particlesNumber = ParticlesFolder.add(fun, 'getParticlesNumber').name(`当前粒子数:`)
+        main.on(RendererCore.Event_ParticlesNumber_Changed, fun.getParticlesNumber)
+        // 粒子出现的初始位置
+        const particlesInitPosition = ParticlesFolder.add(core, 'particlesInitPosition', ['top', 'left', 'random']).name(`粒子出现位置`)
+            .onFinishChange(() => core.initParticles())
+        // 粒子出现的初始位置
+        const _particlesInitAngle_ = { value: -45 }
+        const particlesInitAngle = ParticlesFolder.add(_particlesInitAngle_, 'value', [-45, 0, -90]).name(`粒子运动方向`)
+            .onFinishChange((val) => {
+                core.particlesInitAngle = parseFloat(val.toString()) as -45 | 0 | -90
+                core.initParticles()
+            })
+        // 粒子偏转
+        const particlesDeflection = ParticlesFolder.add(core, 'particlesDeflection', 0.0, 2.0, 0.01).name(`粒子偏转`)
+        // 粒子是否跟随图片颜色
+        const particlesIsColourful = ParticlesFolder.add(core, 'particlesIsColourful').name(`粒子是否跟随图片颜色`)
+        // 粒子颜色
+        const _particlesColor_ = { value: [255, 255, 255] }
+        const particlesColor = ParticlesFolder.addColor(_particlesColor_, 'value').name(`粒子颜色`)
+            .onFinishChange(() => core.particlesInputColor = _particlesColor_.value.map(c => c / 255))
+        // 粒子大小
+        const particlesSize = ParticlesFolder.add(core.particles, 'particleSize', 1, 10, 1).name(`粒子大小`)
+        //
+        const demo = {
+            vertical() {
+
+            },
+            slantwise() {
+
+            }
+
+        }
+        const DemoFolder = gui.addFolder('Demo')
+        DemoFolder.open()
+        DemoFolder.add(demo, 'vertical').name(`粒子垂直往下`)
+            .onFinishChange(() => core.particlesInitAngle = -90)
+
+    }
+}
+
+
+
 const viewContainerDom = document.querySelector('.viewContainer') as HTMLElement;
 const view = new Main(viewContainerDom)
+
+
+/*  if (!window.dynamicsMap) {
+        window.dynamicsMap = dynamicsMap
+        window.particles = this.particles
+        console.log(this.particles)
+        console.log(dynamicsMap)
+        // 读取像素
+        const pixelsLength = sizes.width * sizes.height * 4; // 宽 * 高 * RGBA
+        const pixels = new Uint8Array(1 * 1 * 4); // Array for storing the pixel value
+        //gl.readPixels(186, 258, 200, 200, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+        gl.readPixels(200, 320, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);//128 128 128 64
+        //gl.readPixels(250, 370, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);//191 191 191 96
+        console.log(pixels)
+        // 
+        window.pixels = pixels
+    } */
+
+
+
+
+
 view.canvasDom.style.background = 'palevioletred'
 view.canvasDom.style.background = 'red'
 import("./example1.png?url").then((module) => {

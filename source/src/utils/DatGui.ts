@@ -26,10 +26,18 @@ const sheet = (() => {
 export class DatGui extends EventEmitter {
     ui: GUI
     viewDom?: HTMLElement
-    constructor(inputParams: { [key: string]: any } = {}) {
+    constructor(inputParams: { [key: string]: any } | HTMLElement = {}) {
         super()
-        const params = Object.assign({ autoPlace: false }, inputParams)//默认不自动生成，无外壳
-        this.ui = new GUI(params)
+        // 便捷使用，直接放入将要挂载的外壳
+        const type = Object.getPrototypeOf(inputParams).constructor
+        if (type === window.HTMLElement || type === window.HTMLDivElement) {
+            this.ui = new GUI({ autoPlace: false })//默认不自动生成，无外壳
+            this.appendGuiTo(inputParams as HTMLElement)
+        } else {
+            // 正常使用，使用 GUI 的原生参数
+            const params = Object.assign({ autoPlace: false }, inputParams)//默认不自动生成，无外壳
+            this.ui = new GUI(params)
+        }
     }
 
     appendGuiTo(viewDom: HTMLElement) {

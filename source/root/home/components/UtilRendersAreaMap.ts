@@ -1,6 +1,6 @@
 export class RendersAreaMap {
-  intersectionObserver?: IntersectionObserver;
-  map = new WeakMap();
+  intersectionObserver?: IntersectionObserver
+  map = new WeakMap()
   renders = new Set()
   constructor() {
     if (window.IntersectionObserver) this.intersectionObserver = new window.IntersectionObserver(this.onIntersecte);

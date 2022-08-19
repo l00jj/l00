@@ -13,12 +13,26 @@ import SpreadMenuC from "./l00-SpreadMenu-C.vue";
 import MagicMenuC from "./l00-MagicMenu-C.vue";
 import SpreadMenuD from "./l00-SpreadMenu-D.vue";
 import MagicInputB from "./l00-MagicInput-B.vue";
+import MagicCheckboxA from "./l00-MagicCheckbox-A.vue";
+import MagicInputC from "./l00-MagicInput-C.vue";
 
 const vMagicInputB = ref("");
+const vMagicCheckboxA = ref(false);
 </script>
 
 <template>
   <ViewGroup>
+    <ViewItem style="height: 90vh; background: #222" name="effect-magic-hover-component-magic-checkbox-a">
+    <section style="position: relative; display: flex; flex-direction: column; gap: 2em">
+      <MagicInputC placeholder="First Name"></MagicInputC>
+      <MagicInputC placeholder="Last Name"></MagicInputC>
+      </section>
+    </ViewItem>
+
+    <ViewItem style="height: 90vh" name="effect-magic-hover-component-magic-checkbox-a">
+      <MagicCheckboxA v-model="vMagicCheckboxA"></MagicCheckboxA>
+    </ViewItem>
+
     <ViewItem style="height: 90vh" name="effect-magic-hover-component-magic-input-b">
       <MagicInputB v-model="vMagicInputB"></MagicInputB>
     </ViewItem>

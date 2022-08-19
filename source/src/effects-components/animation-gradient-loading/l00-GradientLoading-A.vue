@@ -3,7 +3,7 @@ import { ref, reactive, computed, watchEffect, onMounted, onUnmounted } from "vu
 import { froundFix } from "@src/utils/Tools";
 
 //const props = defineProps<{}>();
-const bubbles = reactive(Array(5).fill(0));
+
 </script>
 
 <template>

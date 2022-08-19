@@ -19,8 +19,8 @@ const inputText = computed({
 
 <template>
   <section class="backround">
-    <div class="inputBox">
-      <div class="shadow"></div>
+    <div class="input">
+      <div class="longshadow"></div>
       <div class="appearance"><div class="icon search"></div></div>
       <input type="text" placeholder="请输入搜索内容" v-model="inputText" />
     </div>
@@ -46,7 +46,7 @@ section.backround {
   align-items: center;
   background: #cfd1e1;
 }
-.inputBox {
+.input {
   position: relative;
   width: 65px;
   height: 50px;
@@ -55,10 +55,10 @@ section.backround {
   align-items: center;
   transition: 0.5s;
 }
-.inputBox:hover {
+.input:hover {
   width: 400px;
 }
-.inputBox .appearance {
+.input .appearance {
   position: absolute;
   top: 0;
   left: 0;
@@ -71,7 +71,7 @@ section.backround {
   box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.1), 15px 15px 15px rgba(0, 0, 0, 0.1), 20px 20px 15px rgba(0, 0, 0, 0.1),
     30px 30px 15px rgba(0, 0, 0, 0.1), inset 1px 1px 2px #fff;
 }
-.inputBox .appearance::before {
+.input .appearance::before {
   content: "";
   position: absolute;
   top: 0;
@@ -81,7 +81,7 @@ section.backround {
   background: linear-gradient(#fff, #fff, #e3e3e3);
   filter: blur(1px);
 }
-.inputBox .appearance::after {
+.input .appearance::after {
   content: "";
   position: absolute;
   top: 0;
@@ -91,7 +91,7 @@ section.backround {
   background: #9d9d9d;
   filter: blur(1px);
 }
-.inputBox .shadow {
+.input .longshadow {
   pointer-events: none;
   position: absolute;
   top: 0;
@@ -103,7 +103,7 @@ section.backround {
   transform-origin: top;
   transform: skew(45deg);
 }
-.inputBox input {
+.input input {
   outline: none;
   position: relative;
   width: 100%;
@@ -114,28 +114,28 @@ section.backround {
   background: none;
   font-size: 1.1em;
 }
-.inputBox input::placeholder,
-.inputBox input {
+.input input::placeholder,
+.input input {
   color: transparent;
   transition: 0.5s;
 }
-.inputBox:hover input::placeholder,
-.inputBox:hover input {
+.input:hover input::placeholder,
+.input:hover input {
   color: inherit;
 }
-.inputBox .icon {
+.input .icon {
   position: absolute;
   width: 65px;
   display: inline-flex;
   justify-content: center;
   align-items: center;
 }
-.inputBox .icon::before {
+.input .icon::before {
   content: "";
   position: relative;
   font-family: "Font_Awesome";
 }
-.inputBox .icon.search::before {
+.input .icon.search::before {
   content: "\f002";
 }
 </style>

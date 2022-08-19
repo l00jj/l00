@@ -26,13 +26,14 @@ const sheet = (() => {
 export class DatGui extends EventEmitter {
     ui: GUI
     viewDom?: HTMLElement
+    placeDom?: HTMLElement
     constructor(inputParams: { [key: string]: any } | HTMLElement = {}) {
         super()
         // 便捷使用，直接放入将要挂载的外壳
         const type = Object.getPrototypeOf(inputParams).constructor
         if (type === window.HTMLElement || type === window.HTMLDivElement) {
             this.ui = new GUI({ autoPlace: false })//默认不自动生成，无外壳
-            this.appendGuiTo(inputParams as HTMLElement)
+            DatGui.createPlaceContainer(this, inputParams as HTMLElement)
         } else {
             // 正常使用，使用 GUI 的原生参数
             const params = Object.assign({ autoPlace: false }, inputParams)//默认不自动生成，无外壳
@@ -40,24 +41,38 @@ export class DatGui extends EventEmitter {
         }
     }
 
-    appendGuiTo(viewDom: HTMLElement) {
-        this.viewDom = viewDom
+    // 生成外框
+    static createPlaceContainer(datGui: DatGui, viewDom: HTMLElement) {
+        datGui.viewDom = viewDom
         // 还原原版结构
         // https://github.com/dataarts/dat.gui/blob/master/build/dat.gui.js#L1873
         const autoPlaceContainer: HTMLElement = window.document.createElement('div');
         dom.addClass(autoPlaceContainer, CSS_NAMESPACE);
         dom.addClass(autoPlaceContainer, GUI.CLASS_AUTO_PLACE_CONTAINER);
         autoPlaceContainer.style.position = "absolute";
-        const guiDom: HTMLElement = this.ui.domElement;
+        const guiDom: HTMLElement = datGui.ui.domElement;
         dom.addClass(guiDom, GUI.CLASS_AUTO_PLACE);
         dom.addClass(guiDom, 'taller-than-window');
         // 装载
         autoPlaceContainer.appendChild(guiDom)
-        viewDom.appendChild(autoPlaceContainer)
+        // 保存
+        datGui.placeDom = autoPlaceContainer;
         // 初始化
-        this.atViewAreaResize()
-        DatGui.onResizeObserve(viewDom, this)
-        DatGui.addResizeHandle(this)
+        datGui.atViewAreaResize()
+        DatGui.onResizeObserve(viewDom, datGui)
+        DatGui.addResizeHandle(datGui)
+    }
+
+    // 显示
+    show() {
+        if (this.viewDom && this.placeDom)
+            this.viewDom.appendChild(this.placeDom)
+    }
+
+    // 隐藏
+    hide() {
+        if (this.placeDom)
+            this.placeDom.remove()
     }
 
     atViewAreaResize() {

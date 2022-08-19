@@ -5,11 +5,16 @@ import ViewItem from "@src/components/Projects/EffectsProjectView_Item.vue";
 import FingerprintScannerA from "./l00-FingerprintScanner-A.vue";
 import FacialScannerA from "./l00-FacialScanner-A.vue";
 import ScannerLineButtonA from "./l00-ScannerLineButton-A.vue";
+import ScannerLineTextA from "./l00-ScannerLineText-A.vue";
 </script>
 
 <template>
   <ViewGroup>
-    <ViewItem style="height: 90vh;" name="effect-scanner-line-button-a">
+    <ViewItem style="height: 90vh" name="effect-scanner-text-a">
+      <ScannerLineTextA></ScannerLineTextA>
+    </ViewItem>
+
+    <ViewItem style="height: 90vh" name="effect-scanner-line-button-a">
       <ScannerLineButtonA></ScannerLineButtonA>
     </ViewItem>
 

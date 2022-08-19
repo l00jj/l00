@@ -31,12 +31,14 @@ const commonConfig: UserConfigExport = {
 
       input: {
         'index': resolve(__dirname, 'root/index.html'),
-        'test': resolve(__dirname, 'root/test/index.html'),
         'about': resolve(__dirname, 'root/about/index.html'),
         'effects': resolve(__dirname, 'root/effects/index.html'),
         'blobs': resolve(__dirname, 'root/blobs/index.html'),
         'metaverse': resolve(__dirname, 'root/metaverse/index.html'),
-        'particles': resolve(__dirname, 'root/particles/index.html'),
+        'simulations': resolve(__dirname, 'root/simulations/index.html'),
+        //
+        'test': resolve(__dirname, 'root/test/index.html'),
+        'test-fluid': resolve(__dirname, 'root/test/index.html'),
       },
 
       output: {//输出资源整合到对应文件夹

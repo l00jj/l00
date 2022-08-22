@@ -8,7 +8,6 @@ const viewContainer = ref();
 onMounted(() => {
   const viewContainerDom = viewContainer.value as HTMLElement;
   const view = new View(viewContainerDom);
-  window.view = view;
   onUnmounted(() => view.destroy());
 });
 </script>

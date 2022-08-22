@@ -6,11 +6,7 @@ const viewArea = ref();
 
 onMounted(() => {
   const viewAreaEl = viewArea.value as HTMLElement;
-  const datGui = new DatGui();
-  //const datGui = new DatGui({autoPlace:true});
-
-  datGui.appendGuiTo(viewAreaEl);
-  console.log(datGui);
+  const datGui = new DatGui(viewAreaEl);
   onUnmounted(() => datGui.destroy());
   // Setup
   const uiFolder = datGui.ui.addFolder("Balls");

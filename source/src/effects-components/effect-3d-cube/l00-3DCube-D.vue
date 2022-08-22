@@ -52,11 +52,7 @@ const viewArea = ref<HTMLElement>();
 
 onMounted(() => {
   const viewAreaEl = viewArea.value as HTMLElement;
-  const datGui = new DatGui();
-  //const datGui = new DatGui({autoPlace:true});
-
-  datGui.appendGuiTo(viewAreaEl);
-  console.log(datGui);
+  const datGui = new DatGui(viewAreaEl);
   onUnmounted(() => datGui.destroy());
   // Setup
   const uiStairs = datGui.ui.addFolder("stairs");

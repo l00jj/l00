@@ -223,8 +223,7 @@ class GuiHelper {
     datGui: DatGui
     constructor(main: Main) {
         this.main = main
-        this.datGui = new DatGui()
-        this.datGui.appendGuiTo(this.main.viewContainerDom)
+        this.datGui = new DatGui(this.main.viewContainerDom)
         this.main.onDestroyed(() => this.datGui.destroy())
         Promise.resolve().then(() => this.init())
     }

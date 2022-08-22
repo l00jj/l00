@@ -238,8 +238,7 @@ class ParticleHelper {
     datGui: DatGui
     constructor(main: Main) {
         this.main = main
-        this.datGui = new DatGui()
-        this.datGui.appendGuiTo(this.main.viewContainerDom)
+        this.datGui = new DatGui(this.main.viewContainerDom)
         //
         const { particles, renderer } = this.main.params
 

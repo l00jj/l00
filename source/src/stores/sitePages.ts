@@ -3,6 +3,6 @@ export default {
     "about": { name: "关于我", href: host + "about/" },
     "metaverse": { name: "元宇宙", href: host + "metaverse/" },
     "effects": { name: "创意收录", href: host + "effects/" },
-    "simulations": { name: "效果实验室", href: host + "simulations/" },
+    "magics": { name: "效果实验室", href: host + "magics/" },
     "blobs": { name: "图形生成器", href: host + "blobs/" },
 }
